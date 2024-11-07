@@ -1,0 +1,26 @@
+{
+  "name": "2-sen-noh-community-be",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-prettier": "^5.2.1",
+    "express": "^4.21.1",
+    "prettier": "^3.3.3"
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^9.1.0"
+  }
+}
