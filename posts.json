@@ -63,5 +63,28 @@
         "comment_cnt": 20,
         "visit_cnt": 133413,
         "date": "2024-11-01T12:14:08+09:00"
+    },
+    {
+        "post_id": 6,
+        "title": "게시물 추가옹",
+        "content": "하이하이",
+        "user_id": 1,
+        "nickname": "닉네임이라고",
+        "heart_cnt": 0,
+        "comment_cnt": 0,
+        "visit_cnt": 0,
+        "date": "2024-11-08T05:51:57.561Z"
+    },
+    {
+        "post_id": 7,
+        "title": "게시물 추가합",
+        "content": "하이하이하하핳",
+        "user_id": 2,
+        "nickname": "센ㅅ네센",
+        "profile_image": "",
+        "heart_cnt": 0,
+        "comment_cnt": 0,
+        "visit_cnt": 0,
+        "date": "2024-11-08T06:13:44.641Z"
     }
 ]

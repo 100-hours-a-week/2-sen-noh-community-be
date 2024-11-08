@@ -91,6 +91,53 @@ app.get('/posts/:postId/comments', (req, res) => {
     });
 });
 
+app.use(express.json());
+
+app.post('/posts', (req, res) => {
+    const { userId, title, content, contentImage } = req.body;
+    if (!userId || !title || !content) {
+        return res.status(400).json({
+            message: '필수안보냄',
+        });
+    }
+
+    const filePath = path.join(__dirname, 'posts.json');
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ message: '파일 읽기 오류' });
+        }
+
+        const posts = JSON.parse(data);
+
+        // 닉네임,프로필이미지 가져오기
+        const newPost = {
+            post_id: posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0,
+            title,
+            content,
+            post_image: contentImage,
+            user_id: userId,
+            nickname: '추가로 가져오기',
+            profile_image: '',
+            heart_cnt: 0,
+            comment_cnt: 0,
+            visit_cnt: 0,
+            date: new Date().toISOString(),
+        };
+
+        posts.push(newPost);
+
+        fs.writeFile(filePath, JSON.stringify(posts, null, 2), 'utf8', err => {
+            if (err) {
+                return res.status(500).json({ message: '파일 저장 오류' });
+            }
+
+            res.status(201).json({
+                message: '새 게시글 추가 완',
+            });
+        });
+    });
+});
+
 // 서버 실행
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);
