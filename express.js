@@ -63,6 +63,34 @@ app.get('/posts/:postId', (req, res) => {
     });
 });
 
+app.get('/posts/:postId/comments', (req, res) => {
+    const { postId } = req.params;
+    const filePath = path.join(__dirname, 'comments.json');
+
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            res.status(500).json({ message: '파일 오류' });
+            return;
+        }
+
+        const comments = JSON.parse(data);
+        const comment = comments
+            .filter(c => c.post_id === parseInt(postId, 10))
+            .map(c => ({
+                comment_id: c.comment_id,
+                user_id: c.user_id,
+                nickname: c.nickname,
+                profile_image: c.profile_image,
+                date: c.date,
+                comment: c.comment,
+            }));
+        res.status(200).json({
+            message: 'ok',
+            data: comment,
+        });
+    });
+});
+
 // 서버 실행
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);
