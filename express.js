@@ -10,7 +10,7 @@ const port = 3000;
 // GET 요청 처리 (게시글 목록 반환)
 app.get('/posts', (req, res) => {
     const filePath = path.join(__dirname, 'posts.json');
-    fs.readFile(filePath, 'utf8', (err, data) => {
+    fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             res.status(500).json({ message: '파일 오류' });
             return;
@@ -41,7 +41,7 @@ app.get('/posts/:postId', (req, res) => {
 
     const filePath = path.join(__dirname, 'posts.json');
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
+    fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             res.status(500).json({ message: '파일 오류' });
             return;
@@ -67,7 +67,7 @@ app.get('/posts/:postId/comments', (req, res) => {
     const { postId } = req.params;
     const filePath = path.join(__dirname, 'comments.json');
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
+    fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             res.status(500).json({ message: '파일 오류' });
             return;
@@ -102,7 +102,7 @@ app.post('/posts', (req, res) => {
     }
 
     const filePath = path.join(__dirname, 'posts.json');
-    fs.readFile(filePath, 'utf8', (err, data) => {
+    fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -126,7 +126,7 @@ app.post('/posts', (req, res) => {
 
         posts.push(newPost);
 
-        fs.writeFile(filePath, JSON.stringify(posts, null, 2), 'utf8', err => {
+        fs.writeFile(filePath, JSON.stringify(posts, null, 2), 'utf-8', err => {
             if (err) {
                 return res.status(500).json({ message: '파일 저장 오류' });
             }
@@ -147,7 +147,7 @@ app.post('/posts/:postId/comments', (req, res) => {
     }
 
     const filePath = path.join(__dirname, 'comments.json');
-    fs.readFile(filePath, 'utf8', (err, data) => {
+    fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -176,6 +176,58 @@ app.post('/posts/:postId/comments', (req, res) => {
 
             res.status(201).json({
                 message: '새 댓글 추가 완',
+            });
+        });
+    });
+});
+
+app.patch('/posts/:postId', (req, res) => {
+    const { postId } = req.params;
+    const { title, content, userId, contentImage } = req.body;
+
+    if (!userId) {
+        return req.status(400).json({ message: '필수 요소 안넣음' });
+    }
+
+    const filePath = path.join(__dirname, 'posts.json');
+
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ message: '파일 읽기 오류' });
+        }
+
+        const posts = JSON.parse(data);
+
+        const postIndex = posts.findIndex(
+            post => post.post_id === parseInt(postId, 10),
+        );
+
+        if (postIndex === -1) {
+            return res.status(404).json({ message: '게시글 찾을 수 없음' });
+        }
+
+        if (userId !== posts[postIndex].user_id) {
+            return res.status(401).json({ message: '수정 권한 없음' });
+        }
+
+        if (title) {
+            posts[postIndex].title = title;
+        }
+
+        if (content) {
+            posts[postIndex].content = content;
+        }
+
+        if (contentImage) {
+            posts[postIndex].content_image = contentImage;
+        }
+
+        fs.writeFile(filePath, JSON.stringify(posts, null, 2), 'utf-8', err => {
+            if (err) {
+                return res.status(500).json({ message: '파일 저장 오류' });
+            }
+            return res.status(200).json({
+                message: '게시글 수정 완료',
             });
         });
     });
