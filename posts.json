@@ -53,25 +53,15 @@
   },
   {
     "post_id": 6,
-    "title": "게시물 추가옹",
-    "content": "하이하이",
+    "title": "하이하하아핫",
+    "content": "데이터 추가추가추가",
+    "post_image": "",
     "user_id": 1,
-    "nickname": "닉네임이라고",
-    "heart_cnt": 0,
-    "comment_cnt": 0,
-    "visit_cnt": 0,
-    "date": "2024-11-08T05:51:57.561Z"
-  },
-  {
-    "post_id": 7,
-    "title": "게시물 추가합",
-    "content": "하이하이하하핳",
-    "user_id": 2,
-    "nickname": "센ㅅ네센",
+    "nickname": "추가로 가져오기",
     "profile_image": "",
     "heart_cnt": 0,
     "comment_cnt": 0,
     "visit_cnt": 0,
-    "date": "2024-11-08T06:13:44.641Z"
+    "date": "2024-11-09T09:53:29.812Z"
   }
 ]

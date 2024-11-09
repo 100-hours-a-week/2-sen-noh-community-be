@@ -233,6 +233,38 @@ app.patch('/posts/:postId', (req, res) => {
     });
 });
 
+app.delete('/posts/:postId', (req, res) => {
+    const { postId } = req.params;
+
+    const filePath = path.join(__dirname, 'posts.json');
+
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ message: '파일 읽기 오류' });
+        }
+
+        const posts = JSON.parse(data);
+
+        const postIndex = posts.findIndex(
+            post => post.post_id === parseInt(postId, 10),
+        );
+
+        if (postIndex === -1) {
+            return res.status(404).json({ message: '찾을 수 없는 게시글' });
+        }
+
+        const newPosts = posts.splice(postIndex, 1);
+
+        fs.writeFile(filePath, JSON.stringify(newPosts, null, 2), err => {
+            if (err) {
+                return res.status(500).json({ message: '파일 저장 오류' });
+            }
+
+            res.status(200).json({ message: '게시글 삭제 완료' });
+        });
+    });
+});
+
 // 서버 실행
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);
