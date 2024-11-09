@@ -265,6 +265,44 @@ app.delete('/posts/:postId', (req, res) => {
     });
 });
 
+app.patch('/posts/:postId/comments/:commentId', (req, res) => {
+    const { postId, commentId } = req.params;
+    const { userId, comment } = req.body;
+
+    if (!userId || !comment) {
+        return res.status(400).json({ message: '필수 요소 안보냄' });
+    }
+
+    const filePath = path.join(__dirname, 'comments.json');
+
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ message: '파일 읽기 오류' });
+        }
+
+        const comments = JSON.parse(data);
+
+        const editCmtIndex = comments.findIndex(
+            cmt => cmt.comment_id === parseInt(commentId, 10),
+        );
+
+        if (editCmtIndex === -1) {
+            return res.status(404).json({ message: '댓글을 찾을 수 없음' });
+        }
+
+        comments[editCmtIndex].comment = comment;
+        comments[editCmtIndex].date = new Date().toISOString();
+
+        fs.writeFile(filePath, JSON.stringify(comments, null, 2), err => {
+            if (err) {
+                return res.status(500).json({ message: '파일 쓰기 오류' });
+            }
+
+            res.status(200).json({ message: '댓글 수정 완' });
+        });
+    });
+});
+
 // 서버 실행
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);
