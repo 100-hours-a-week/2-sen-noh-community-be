@@ -1,8 +1,15 @@
 const express = require('express');
+const timeout = require('connect-timeout');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
+
+app.use(timeout('5s'));
+
+app.use((req, res, next) => {
+    if (!req.timedout) next();
+});
 
 // 포트 설정
 const port = 3000;
