@@ -1,6 +1,7 @@
 const express = require('express');
 const timeout = require('connect-timeout');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 const fs = require('fs');
 const path = require('path');
 
@@ -11,6 +12,22 @@ app.use(timeout('5s'));
 app.use((req, res, next) => {
     if (!req.timedout) next();
 });
+
+app.use(
+    helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            // 외부 CDN 사용하면 해당 도메인 추가
+            scriptSrc: ["'self"],
+            // 외부 폰트 같은 거 사용할 때는 해당 도메인 추가
+            styleSrc: ["'self"],
+            imgSrc: ["'self"],
+            connectSrc: ["'self"],
+            frameSrc: ["'none"],
+            objectSrc: ["'none"],
+        },
+    }),
+);
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
