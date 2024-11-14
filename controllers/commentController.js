@@ -44,28 +44,43 @@ exports.addComment = (req, res) => {
 
         const comments = JSON.parse(data);
 
-        const newComment = {
-            comment_id:
-                comments.length > 0
-                    ? comments[comments.length - 1].comment_id + 1
-                    : 0,
-            post_id: parseInt(postId, 10),
-            user_id: userId,
-            nickname: '나중 추가',
-            profile_image: '나중 추가',
-            date: new Date().toISOString(),
-            comment,
-        };
+        const userFilePath = path.join(__dirname, '../data/user.json');
 
-        comments.push(newComment);
-
-        fs.writeFile(filePath, JSON.stringify(comments, null, 4), err => {
+        fs.readFile(userFilePath, 'utf-8', (err, data) => {
             if (err) {
-                return res.status(500).json({ message: '파일 쓰기 오류' });
+                return res.status(500).json({ message: '유저 파일 읽기 오류' });
             }
 
-            res.status(201).json({
-                message: '새 댓글 추가 완',
+            const users = JSON.parse(data);
+            const userIndex = users.findIndex(
+                users => users.user_id === parseInt(userId, 10),
+            );
+
+            const user = users[userIndex];
+
+            const newComment = {
+                comment_id:
+                    comments.length > 0
+                        ? comments[comments.length - 1].comment_id + 1
+                        : 0,
+                post_id: parseInt(postId, 10),
+                user_id: userId,
+                nickname: user.nickname,
+                profile_image: user.profile_image,
+                date: new Date().toISOString(),
+                comment,
+            };
+
+            comments.push(newComment);
+
+            fs.writeFile(filePath, JSON.stringify(comments, null, 4), err => {
+                if (err) {
+                    return res.status(500).json({ message: '파일 쓰기 오류' });
+                }
+
+                res.status(201).json({
+                    message: '새 댓글 추가 완',
+                });
             });
         });
     });

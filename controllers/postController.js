@@ -29,6 +29,7 @@ exports.getPost = (req, res) => {
         });
     });
 };
+
 exports.getDetailPost = (req, res) => {
     const { postId } = req.params;
 
@@ -54,8 +55,10 @@ exports.getDetailPost = (req, res) => {
     });
 };
 
+const userFilePath = path.join(__dirname, '../data/user.json');
+
 exports.addPost = (req, res) => {
-    const { userId, title, content, contentImage } = req.body;
+    const { userId, title, content, postImage } = req.body;
     if (!userId || !title || !content) {
         return res.status(400).json({
             message: '필수안보냄',
@@ -69,31 +72,50 @@ exports.addPost = (req, res) => {
 
         const posts = JSON.parse(data);
 
-        // TODO - 닉네임,프로필이미지 가져오기
-        const newPost = {
-            post_id: posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0,
-            title,
-            content,
-            post_image: contentImage,
-            user_id: userId,
-            nickname: '추가로 가져오기',
-            profile_image: '',
-            heart_cnt: 0,
-            comment_cnt: 0,
-            visit_cnt: 0,
-            date: new Date().toISOString(),
-        };
-
-        posts.push(newPost);
-
-        fs.writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
+        fs.readFile(userFilePath, 'utf-8', (err, data) => {
             if (err) {
-                return res.status(500).json({ message: '파일 저장 오류' });
+                return res.status(500).json({ message: '유저 파일 읽기 오류' });
             }
 
-            res.status(201).json({
-                message: '새 게시글 추가 완',
-            });
+            const users = JSON.parse(data);
+            const userIndex = users.findIndex(
+                users => users.user_id === parseInt(userId, 10),
+            );
+
+            const user = users[userIndex];
+            const newPost = {
+                post_id:
+                    posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0,
+                title,
+                content,
+                post_image: postImage !== undefined ? postImage : null,
+                user_id: userId,
+                nickname: user.nickname,
+                profile_image: user.profile_image,
+                heart_cnt: 0,
+                comment_cnt: 0,
+                visit_cnt: 0,
+                date: new Date().toISOString(),
+            };
+
+            posts.push(newPost);
+
+            fs.writeFile(
+                filePath,
+                JSON.stringify(posts, null, 4),
+                'utf-8',
+                err => {
+                    if (err) {
+                        return res
+                            .status(500)
+                            .json({ message: '파일 저장 오류' });
+                    }
+
+                    res.status(201).json({
+                        message: '새 게시글 추가 완',
+                    });
+                },
+            );
         });
     });
 };

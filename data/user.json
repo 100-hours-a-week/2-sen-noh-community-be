@@ -1,0 +1,17 @@
+[
+    {
+        "user_id": 1,
+        "nickname": "닉네임이라고",
+        "profile_image": null
+    },
+    {
+        "user_id": 2,
+        "nickname": "센ㅅ네센",
+        "profile_image": null
+    },
+    {
+        "user_id": 3,
+        "nickname": "하이욤",
+        "profile_image": null
+    }
+]
