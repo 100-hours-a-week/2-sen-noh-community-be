@@ -199,3 +199,42 @@ exports.deletePost = (req, res) => {
         });
     });
 };
+
+exports.addLike = (req, res) => {
+    const { postId } = req.params;
+    const { userId } = req.body;
+
+    const likeFilePath = path.join(__dirname, '../data/likes.json');
+    fs.readFile(likeFilePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ message: '파일 열기 에러요' });
+        }
+
+        const likes = JSON.parse(data);
+
+        if (
+            likes.some(
+                item =>
+                    item.user_id === userId &&
+                    item.post_id === parseInt(postId, 10),
+            )
+        ) {
+            return res.status(200).json({ message: '이미 좋아요 눌렀습니다.' });
+        }
+
+        const newLike = {
+            user_id: userId,
+            post_id: parseInt(postId, 10),
+        };
+
+        likes.push(newLike);
+
+        fs.writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
+            if (err) {
+                return res.status(500).json({ message: '파일 쓰기 오류' });
+            }
+
+            return res.status(201).json({ message: '좋아요' });
+        });
+    });
+};
