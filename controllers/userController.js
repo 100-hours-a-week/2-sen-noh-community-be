@@ -76,3 +76,38 @@ exports.updateUser = (req, res) => {
         });
     });
 };
+
+exports.updatePW = (req, res) => {
+    const { userId } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+        return res.status(500).json({ message: '필수 요소 안보냄' });
+    }
+
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ message: '파일 읽기 오류' });
+        }
+
+        const users = JSON.parse(data);
+
+        const userIndex = users.findIndex(
+            item => item.user_id === parseInt(userId, 10),
+        );
+
+        if (userIndex === -1) {
+            return res.status(404).json({ message: '유저 정보 찾을 수 없음' });
+        }
+
+        users[userIndex].password = password;
+
+        fs.writeFile(filePath, JSON.stringify(users, null, 4), err => {
+            if (err) {
+                return res.status(500).json({ message: '파일 쓰기 오류' });
+            }
+
+            return res.status(200).json({ message: '비밀번호 수정' });
+        });
+    });
+};
