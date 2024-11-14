@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const filePath = path.join(__dirname, '../data/posts.json');
+const likeFilePath = path.join(__dirname, '../data/likes.json');
 
 exports.getPost = (req, res) => {
     fs.readFile(filePath, 'utf-8', (err, data) => {
@@ -35,23 +36,36 @@ exports.getDetailPost = (req, res) => {
 
     fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
-            res.status(500).json({ message: '파일 오류' });
-            return;
+            return res.status(500).json({ message: '파일 오류' });
         }
 
         const posts = JSON.parse(data);
         const post = posts.find(p => p.post_id === parseInt(postId, 10));
 
-        if (post) {
-            res.status(200).json({
-                message: '게시글 목록',
-                data: post,
-            });
-        } else {
-            res.status(404).json({
-                message: '게시글 없음',
-            });
-        }
+        fs.readFile(likeFilePath, 'utf-8', (err, data) => {
+            if (err) {
+                return res.status(500).json({ message: '파일 오류' });
+            }
+
+            const likes = JSON.parse(data);
+
+            // TODO - 세션 구현 뒤 user_id 받아와서 변경
+            post.is_liked = likes.some(
+                item =>
+                    item.user_id === 1 && item.post_id === parseInt(postId, 10),
+            );
+
+            if (post) {
+                res.status(200).json({
+                    message: '게시글 목록',
+                    data: post,
+                });
+            } else {
+                res.status(404).json({
+                    message: '게시글 없음',
+                });
+            }
+        });
     });
 };
 
@@ -204,7 +218,6 @@ exports.addLike = (req, res) => {
     const { postId } = req.params;
     const { userId } = req.body;
 
-    const likeFilePath = path.join(__dirname, '../data/likes.json');
     fs.readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 열기 에러요' });
@@ -243,7 +256,6 @@ exports.deleteLike = (req, res) => {
     const { postId } = req.params;
     const { userId } = req.body;
 
-    const likeFilePath = path.join(__dirname, '../data/likes.json');
     fs.readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 열기 에러요' });
