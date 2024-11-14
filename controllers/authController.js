@@ -92,3 +92,25 @@ exports.signIn = (req, res) => {
         });
     });
 };
+
+exports.checkEmail = (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ message: '필수 요소 안줌' });
+    }
+
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ message: '파일 쓰기 오류' });
+        }
+
+        const users = JSON.parse(data);
+
+        const isDup = users.some(item => item.email === email);
+
+        return res
+            .status(200)
+            .json({ message: '중복 여부', data: { is_existed: isDup } });
+    });
+};
