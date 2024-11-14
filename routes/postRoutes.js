@@ -8,5 +8,6 @@ router.post('/', postController.addPost);
 router.patch('/:postId', postController.updatePost);
 router.delete('/posts/:postId', postController.deletePost);
 router.post('/:postId/like', postController.addLike);
+router.delete('/:postId/like', postController.deleteLike);
 
 module.exports = router;
