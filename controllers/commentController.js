@@ -44,7 +44,7 @@ exports.addComment = (req, res) => {
 
         const comments = JSON.parse(data);
 
-        const userFilePath = path.join(__dirname, '../data/user.json');
+        const userFilePath = path.join(__dirname, '../data/users.json');
 
         fs.readFile(userFilePath, 'utf-8', (err, data) => {
             if (err) {

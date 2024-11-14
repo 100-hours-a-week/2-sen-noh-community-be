@@ -69,7 +69,7 @@ exports.getDetailPost = (req, res) => {
     });
 };
 
-const userFilePath = path.join(__dirname, '../data/user.json');
+const userFilePath = path.join(__dirname, '../data/users.json');
 
 exports.addPost = (req, res) => {
     const { userId, title, content, postImage } = req.body;

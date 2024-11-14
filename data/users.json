@@ -1,16 +1,22 @@
 [
     {
         "user_id": 1,
+        "email": "test@test.com",
+        "password": "Ttest@123",
         "nickname": "닉네임이라고",
         "profile_image": null
     },
     {
         "user_id": 2,
+        "email": "test2@test.com",
+        "password": "Ttest@123",
         "nickname": "센ㅅ네센",
         "profile_image": null
     },
     {
         "user_id": 3,
+        "email": "test3@test.com",
+        "password": "Ttest@123",
         "nickname": "하이욤",
         "profile_image": null
     }
