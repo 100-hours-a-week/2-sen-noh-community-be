@@ -3,7 +3,9 @@ const path = require('path');
 
 const filePath = path.join(__dirname, '../data/posts.json');
 const likeFilePath = path.join(__dirname, '../data/likes.json');
+const userFilePath = path.join(__dirname, '../data/users.json');
 
+// TODO - post 순서 정하기
 exports.getPost = (req, res) => {
     fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
@@ -12,21 +14,35 @@ exports.getPost = (req, res) => {
         }
 
         const posts = JSON.parse(data);
-        const simplifiedPosts = posts.map(post => ({
-            post_id: post.post_id,
-            title: post.title,
-            user_id: post.user_id,
-            profile_image: post.profile_image,
-            nickname: post.nickname,
-            heart_cnt: post.heart_cnt,
-            chat_cnt: post.chat_cnt,
-            visit_cnt: post.visit_cnt,
-            date: post.date,
-        }));
 
-        res.status(200).json({
-            message: '게시글 목록',
-            data: simplifiedPosts,
+        fs.readFile(userFilePath, 'utf-8', (err, data) => {
+            if (err) {
+                res.status(500).json({ message: '파일 오류' });
+                return;
+            }
+
+            const users = JSON.parse(data);
+
+            const simplifiedPosts = posts.map(post => {
+                const user = users.find(item => item.user_id === post.user_id);
+                console.log(user);
+                return {
+                    post_id: post.post_id,
+                    title: post.title,
+                    user_id: post.user_id,
+                    profile_image: user ? user.profile_image : null, // 유저 정보 연결
+                    nickname: user ? user.nickname : '알 수 없음',
+                    heart_cnt: post.heart_cnt,
+                    comment_cnt: post.comment_cnt,
+                    visit_cnt: post.visit_cnt,
+                    date: post.date,
+                };
+            });
+
+            res.status(200).json({
+                message: '게시글 목록',
+                data: simplifiedPosts,
+            });
         });
     });
 };
@@ -42,6 +58,12 @@ exports.getDetailPost = (req, res) => {
         const posts = JSON.parse(data);
         const post = posts.find(p => p.post_id === parseInt(postId, 10));
 
+        if (!post) {
+            return res.status(404).json({
+                message: '게시글 없음',
+            });
+        }
+
         fs.readFile(likeFilePath, 'utf-8', (err, data) => {
             if (err) {
                 return res.status(500).json({ message: '파일 오류' });
@@ -55,21 +77,26 @@ exports.getDetailPost = (req, res) => {
                     item.user_id === 1 && item.post_id === parseInt(postId, 10),
             );
 
-            if (post) {
-                res.status(200).json({
+            fs.readFile(userFilePath, 'utf-8', (err, data) => {
+                if (err) {
+                    res.status(500).json({ message: '파일 오류' });
+                    return;
+                }
+
+                const users = JSON.parse(data);
+                const user = users.find(item => item.user_id === post.user_id);
+
+                post.nickname = user.nickname;
+                post.profile_image = user.profile_image;
+
+                return res.status(200).json({
                     message: '게시글 목록',
                     data: post,
                 });
-            } else {
-                res.status(404).json({
-                    message: '게시글 없음',
-                });
-            }
+            });
         });
     });
 };
-
-const userFilePath = path.join(__dirname, '../data/users.json');
 
 exports.addPost = (req, res) => {
     const { userId, title, content, postImage } = req.body;
