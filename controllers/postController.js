@@ -25,7 +25,7 @@ exports.getPost = (req, res) => {
 
             const simplifiedPosts = posts.map(post => {
                 const user = users.find(item => item.user_id === post.user_id);
-                console.log(user);
+
                 return {
                     post_id: post.post_id,
                     title: post.title,
@@ -166,7 +166,7 @@ exports.updatePost = (req, res) => {
     const { title, content, userId, contentImage } = req.body;
 
     if (!userId) {
-        return req.status(400).json({ message: '필수 요소 안넣음' });
+        return res.status(400).json({ message: '필수 요소 안넣음' });
     }
 
     fs.readFile(filePath, 'utf-8', (err, data) => {
@@ -213,7 +213,12 @@ exports.updatePost = (req, res) => {
 
 exports.deletePost = (req, res) => {
     const { postId } = req.params;
+    const { user_id } = req.body;
 
+    if(!user_id){
+        return res.status(400).json({message:"필수 요소 안줌"});
+    }
+    
     fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
@@ -227,6 +232,10 @@ exports.deletePost = (req, res) => {
 
         if (postIndex === -1) {
             return res.status(404).json({ message: '찾을 수 없는 게시글' });
+        }
+
+        if (posts[postIndex].user_id !== user_id) {
+            return res.status(401).json({ message: '삭제 권한 없음' });
         }
 
         posts.splice(postIndex, 1);
