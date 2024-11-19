@@ -1,28 +1,8 @@
 [
     {
-        "comment_id": 1,
-        "post_id": 1,
-        "user_id": 1,
-        "nickname": "닉네임이라고",
-        "profile_image": "https://image.kr/img.jpg",
-        "date": "2024-11-18T12:14:08+09:00",
-        "comment": "댓글달아요"
-    },
-    {
-        "comment_id": 2,
-        "post_id": 1,
-        "user_id": 1,
-        "nickname": "닉네임이라고",
-        "profile_image": "https://image.kr/img.jpg",
-        "date": "2024-11-17T12:14:08+09:00",
-        "comment": "댓글 내용"
-    },
-    {
         "comment_id": 4,
         "post_id": 2,
         "user_id": 1,
-        "nickname": "센ㅅ네센",
-        "profile_image": "https://image.kr/img.jpg",
         "date": "2024-11-09T11:30:25.120Z",
         "comment": "댓글 수정"
     },
@@ -30,9 +10,28 @@
         "comment_id": 5,
         "post_id": 2,
         "user_id": 2,
-        "nickname": "나중 추가",
-        "profile_image": "나중 추가",
         "date": "2024-11-08T06:59:34.142Z",
         "comment": "하이하이하하핳"
+    },
+    {
+        "comment_id": 7,
+        "post_id": 1,
+        "user_id": 1,
+        "date": "2024-11-19T04:44:56.581Z",
+        "comment": "제대로 된 건가용dddd"
+    },
+    {
+        "comment_id": 8,
+        "post_id": 13,
+        "user_id": 1,
+        "date": "2024-11-19T05:49:18.630Z",
+        "comment": "그래 화이팅 하시고!"
+    },
+    {
+        "comment_id": 9,
+        "post_id": 13,
+        "user_id": 2,
+        "date": "2024-11-19T05:53:18.916Z",
+        "comment": "뭐야 모하는디"
     }
 ]

@@ -3,21 +3,21 @@
         "user_id": 1,
         "email": "test@test.com",
         "password": "Ttest@123",
-        "nickname": "닉네임이라고",
+        "nickname": "닉네이임다2",
         "profile_image": null
     },
     {
         "user_id": 2,
         "email": "test2@test.com",
         "password": "Ttest@123",
-        "nickname": "센ㅅ네센",
-        "profile_image": null
+        "nickname": "하이욤dk",
+        "profile_image": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Cat_poster_1.jpg"
     },
     {
         "user_id": 3,
-        "email": "test3@test.com",
-        "password": "Ttest@123",
-        "nickname": "하이욤",
+        "email": "test@test9.com",
+        "password": "Ttest@1234",
+        "nickname": "hihihi",
         "profile_image": null
     }
 ]
