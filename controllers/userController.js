@@ -4,9 +4,39 @@ const path = require('path');
 
 const filePath = path.join(__dirname, '../data/users.json');
 
+exports.getUser = (req,res) =>{
+    const {userId} = req.params;
+
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ message: '파일 읽기 오류' });
+        }
+
+        const users = JSON.parse(data);
+
+        const user = users.find(
+            item => item.user_id === parseInt(userId, 10),
+        );
+
+        if (!user) {
+            return res
+                .status(404)
+                .json({ message: '찾을 수 없는 유저입니다.' });
+        }
+
+        const userInfo = {
+            email:user.email,
+            nickname:user.nickname
+        }
+
+        return res.status(200).json({message:"유저 정보",data:userInfo})
+        
+    });
+}
+
+// TODO - 게시물, 댓글, 좋아요 다 삭제
 exports.deleteUser = (req, res) => {
     const { userId } = req.params;
-    console.log(userId);
 
     fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
