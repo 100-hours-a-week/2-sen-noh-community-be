@@ -99,8 +99,8 @@ exports.getDetailPost = (req, res) => {
 };
 
 exports.addPost = (req, res) => {
-    const { userId, title, content, postImage } = req.body;
-    if (!userId || !title || !content) {
+    const { user_id, title, content, post_image } = req.body;
+    if (!user_id || !title || !content) {
         return res.status(400).json({
             message: '필수안보냄',
         });
@@ -120,17 +120,17 @@ exports.addPost = (req, res) => {
 
             const users = JSON.parse(data);
             const userIndex = users.findIndex(
-                users => users.user_id === parseInt(userId, 10),
+                users => users.user_id === parseInt(user_id, 10),
             );
 
             const user = users[userIndex];
+            const postId =  posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0;
             const newPost = {
-                post_id:
-                    posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0,
+                post_id:postId,
                 title,
                 content,
-                post_image: postImage !== undefined ? postImage : null,
-                user_id: userId,
+                post_image: post_image !== undefined ? post_image : null,
+                user_id: user_id,
                 nickname: user.nickname,
                 profile_image: user.profile_image,
                 heart_cnt: 0,
@@ -154,6 +154,7 @@ exports.addPost = (req, res) => {
 
                     res.status(201).json({
                         message: '새 게시글 추가 완',
+                        postId:postId
                     });
                 },
             );
@@ -218,7 +219,7 @@ exports.deletePost = (req, res) => {
     if(!user_id){
         return res.status(400).json({message:"필수 요소 안줌"});
     }
-    
+
     fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
