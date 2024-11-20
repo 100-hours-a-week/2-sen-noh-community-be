@@ -4,8 +4,8 @@ const path = require('path');
 
 const filePath = path.join(__dirname, '../data/users.json');
 
-exports.getUser = (req,res) =>{
-    const {userId} = req.params;
+exports.getUser = (req, res) => {
+    const { userId } = req.params;
 
     fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
@@ -14,9 +14,7 @@ exports.getUser = (req,res) =>{
 
         const users = JSON.parse(data);
 
-        const user = users.find(
-            item => item.user_id === parseInt(userId, 10),
-        );
+        const user = users.find(item => item.user_id === parseInt(userId, 10));
 
         if (!user) {
             return res
@@ -25,14 +23,13 @@ exports.getUser = (req,res) =>{
         }
 
         const userInfo = {
-            email:user.email,
-            nickname:user.nickname
-        }
+            email: user.email,
+            nickname: user.nickname,
+        };
 
-        return res.status(200).json({message:"유저 정보",data:userInfo})
-        
+        return res.status(200).json({ message: '유저 정보', data: userInfo });
     });
-}
+};
 
 // TODO - 게시물, 댓글, 좋아요 다 삭제
 exports.deleteUser = (req, res) => {

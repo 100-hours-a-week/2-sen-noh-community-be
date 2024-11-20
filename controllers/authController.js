@@ -17,10 +17,11 @@ exports.login = (req, res) => {
 
         const users = JSON.parse(data);
 
-        const userIndex = users.findIndex(
+        const user = users.find(
             item => item.email === email && item.password === password,
         );
-        if (userIndex === -1) {
+
+        if (!user) {
             return res
                 .status(400)
                 .json({ message: '아이디와 패스워드가 일치하지 않습니다.' });
@@ -28,12 +29,20 @@ exports.login = (req, res) => {
 
         return res.status(201).json({
             message: '로그인 완료',
-            data: { user_id: users[userIndex].user_id },
+            data: {
+                user_id: user.user_id,
+                email: user.email,
+                nickname: user.nickname,
+                profile_image: user.profile_image,
+            },
         });
     });
 };
 
+// TODO - 닉네임 중복, 이메일 중복 포함하기
+// TODO - 암호화 진행시 비번 유효성 검사 빼도 될듯
 exports.signIn = (req, res) => {
+    console.log('hi');
     const { email, password, nickname, profile_image } = req.body;
 
     if (!email || !password || !nickname) {

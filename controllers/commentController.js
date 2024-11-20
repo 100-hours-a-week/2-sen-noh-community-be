@@ -3,6 +3,7 @@ const path = require('path');
 
 const filePath = path.join(__dirname, '../data/comments.json');
 const userFilePath = path.join(__dirname, '../data/users.json');
+const postFilePath = path.join(__dirname, '../data/posts.json');
 
 exports.getComment = (req, res) => {
     const { postId } = req;
@@ -79,10 +80,31 @@ exports.addComment = (req, res) => {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
+            fs.readFile(postFilePath, 'utf-8', (err, data) => {
+                if (err) {
+                    console.error(err);
+                }
+
+                const posts = JSON.parse(data);
+
+                const post = posts.find(p => p.post_id === parseInt(postId, 10));
+
+                post.comment_cnt +=1;
+
+                fs.writeFile(postFilePath, JSON.stringify(posts, null, 4), err => {
+                    if (err) {
+                        console.error(err);
+                    }
+                })
+
+            })
+
             res.status(201).json({
                 message: '새 댓글 추가 완',
             });
         });
+
+
     });
 };
 
@@ -131,7 +153,6 @@ exports.updateComment = (req, res) => {
 exports.deleteComment = (req, res) => {
     const { commentId } = req.params;
     const { user_id } = req.body;
-    console.log(req.body);
 
     if (!user_id) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
@@ -156,14 +177,40 @@ exports.deleteComment = (req, res) => {
             return res.status(401).json({ message: '삭제 권한 없음' });
         }
 
-        comments.splice(editCmtIndex, 1);
-
-        fs.writeFile(filePath, JSON.stringify(comments, null, 4), err => {
+        fs.readFile(postFilePath, 'utf-8', (err, data) => {
             if (err) {
-                return res.status(500).json({ message: '파일 쓰기 오류' });
+                console.error(err);
             }
 
-            res.status(200).json({ message: '댓글 삭제 완' });
-        });
+            const posts = JSON.parse(data);
+            
+            const post = posts.find(p => p.post_id === comments[editCmtIndex].post_id);
+
+            if(!post){
+                console.log("왜 post 없냐");
+            }
+
+            post.comment_cnt -=1;
+
+            fs.writeFile(postFilePath, JSON.stringify(posts, null, 4), err => {
+                if (err) {
+                    console.error(err);
+                }
+
+                comments.splice(editCmtIndex, 1);
+
+                fs.writeFile(filePath, JSON.stringify(comments, null, 4), err => {
+                    if (err) {
+                        return res.status(500).json({ message: '파일 쓰기 오류' });
+                    }
+        
+                    res.status(200).json({ message: '댓글 삭제 완' });
+                });
+                
+            })
+            
+        })
+
+
     });
 };

@@ -89,6 +89,14 @@ exports.getDetailPost = (req, res) => {
                 post.nickname = user.nickname;
                 post.profile_image = user.profile_image;
 
+                post.visit_cnt += 1;
+
+                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                    if (err) {
+                        console.error(err);
+                    }
+                });
+
                 return res.status(200).json({
                     message: '게시글 목록',
                     data: post,
@@ -124,15 +132,14 @@ exports.addPost = (req, res) => {
             );
 
             const user = users[userIndex];
-            const postId =  posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0;
+            const postId =
+                posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0;
             const newPost = {
-                post_id:postId,
+                post_id: postId,
                 title,
                 content,
                 post_image: post_image !== undefined ? post_image : null,
                 user_id: user_id,
-                nickname: user.nickname,
-                profile_image: user.profile_image,
                 heart_cnt: 0,
                 comment_cnt: 0,
                 visit_cnt: 0,
@@ -154,7 +161,7 @@ exports.addPost = (req, res) => {
 
                     res.status(201).json({
                         message: '새 게시글 추가 완',
-                        postId:postId
+                        postId: postId,
                     });
                 },
             );
@@ -212,12 +219,14 @@ exports.updatePost = (req, res) => {
     });
 };
 
+
+// TODO - 댓글, 좋아요도 삭제 
 exports.deletePost = (req, res) => {
     const { postId } = req.params;
     const { user_id } = req.body;
 
-    if(!user_id){
-        return res.status(400).json({message:"필수 요소 안줌"});
+    if (!user_id) {
+        return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
     fs.readFile(filePath, 'utf-8', (err, data) => {
@@ -284,6 +293,24 @@ exports.addLike = (req, res) => {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
+            fs.readFile(filePath, 'utf-8', (err, data) => {
+                if (err) {
+                    console.error(err);
+                }
+
+                const posts = JSON.parse(data);
+
+                const post = posts.find(p => p.post_id === postId);
+
+                post.heart_cnt += 1;
+
+                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                    if (err) {
+                        console.error(err);
+                    }
+                })
+            })
+
             return res.status(201).json({ message: '좋아요' });
         });
     });
@@ -324,6 +351,25 @@ exports.deleteLike = (req, res) => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
+
+            fs.readFile(filePath, 'utf-8', (err, data) => {
+                if (err) {
+                    console.error(err);
+                }
+
+                const posts = JSON.parse(data);
+
+                const post = posts.find(p => p.post_id === postId);
+
+                post.heart_cnt -= 1;
+
+                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                    if (err) {
+                        console.error(err);
+                    }
+                })
+            })
+            
 
             return res.status(201).json({ message: '좋아요 취소' });
         });
