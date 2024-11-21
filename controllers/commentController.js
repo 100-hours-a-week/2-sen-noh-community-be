@@ -87,24 +87,27 @@ exports.addComment = (req, res) => {
 
                 const posts = JSON.parse(data);
 
-                const post = posts.find(p => p.post_id === parseInt(postId, 10));
+                const post = posts.find(
+                    p => p.post_id === parseInt(postId, 10),
+                );
 
-                post.comment_cnt +=1;
+                post.comment_cnt += 1;
 
-                fs.writeFile(postFilePath, JSON.stringify(posts, null, 4), err => {
-                    if (err) {
-                        console.error(err);
-                    }
-                })
-
-            })
+                fs.writeFile(
+                    postFilePath,
+                    JSON.stringify(posts, null, 4),
+                    err => {
+                        if (err) {
+                            console.error(err);
+                        }
+                    },
+                );
+            });
 
             res.status(201).json({
                 message: '새 댓글 추가 완',
             });
         });
-
-
     });
 };
 
@@ -183,14 +186,16 @@ exports.deleteComment = (req, res) => {
             }
 
             const posts = JSON.parse(data);
-            
-            const post = posts.find(p => p.post_id === comments[editCmtIndex].post_id);
 
-            if(!post){
-                console.log("왜 post 없냐");
+            const post = posts.find(
+                p => p.post_id === comments[editCmtIndex].post_id,
+            );
+
+            if (!post) {
+                console.log('왜 post 없냐');
             }
 
-            post.comment_cnt -=1;
+            post.comment_cnt -= 1;
 
             fs.writeFile(postFilePath, JSON.stringify(posts, null, 4), err => {
                 if (err) {
@@ -199,18 +204,20 @@ exports.deleteComment = (req, res) => {
 
                 comments.splice(editCmtIndex, 1);
 
-                fs.writeFile(filePath, JSON.stringify(comments, null, 4), err => {
-                    if (err) {
-                        return res.status(500).json({ message: '파일 쓰기 오류' });
-                    }
-        
-                    res.status(200).json({ message: '댓글 삭제 완' });
-                });
-                
-            })
-            
-        })
+                fs.writeFile(
+                    filePath,
+                    JSON.stringify(comments, null, 4),
+                    err => {
+                        if (err) {
+                            return res
+                                .status(500)
+                                .json({ message: '파일 쓰기 오류' });
+                        }
 
-
+                        res.status(200).json({ message: '댓글 삭제 완' });
+                    },
+                );
+            });
+        });
     });
 };

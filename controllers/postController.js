@@ -23,7 +23,7 @@ exports.getPost = (req, res) => {
 
             const users = JSON.parse(data);
 
-            const simplifiedPosts = posts.map(post => {
+            const simplifiedPosts = posts.reverse().map(post => {
                 const user = users.find(item => item.user_id === post.user_id);
 
                 return {
@@ -121,50 +121,31 @@ exports.addPost = (req, res) => {
 
         const posts = JSON.parse(data);
 
-        fs.readFile(userFilePath, 'utf-8', (err, data) => {
+        const postId =
+            posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0;
+        const newPost = {
+            post_id: postId,
+            title,
+            content,
+            post_image: post_image !== undefined ? post_image : null,
+            user_id: user_id,
+            heart_cnt: 0,
+            comment_cnt: 0,
+            visit_cnt: 0,
+            date: new Date().toISOString(),
+        };
+
+        posts.push(newPost);
+
+        fs.writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
             if (err) {
-                return res.status(500).json({ message: '유저 파일 읽기 오류' });
+                return res.status(500).json({ message: '파일 저장 오류' });
             }
 
-            const users = JSON.parse(data);
-            const userIndex = users.findIndex(
-                users => users.user_id === parseInt(user_id, 10),
-            );
-
-            const user = users[userIndex];
-            const postId =
-                posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0;
-            const newPost = {
-                post_id: postId,
-                title,
-                content,
-                post_image: post_image !== undefined ? post_image : null,
-                user_id: user_id,
-                heart_cnt: 0,
-                comment_cnt: 0,
-                visit_cnt: 0,
-                date: new Date().toISOString(),
-            };
-
-            posts.push(newPost);
-
-            fs.writeFile(
-                filePath,
-                JSON.stringify(posts, null, 4),
-                'utf-8',
-                err => {
-                    if (err) {
-                        return res
-                            .status(500)
-                            .json({ message: '파일 저장 오류' });
-                    }
-
-                    res.status(201).json({
-                        message: '새 게시글 추가 완',
-                        postId: postId,
-                    });
-                },
-            );
+            res.status(201).json({
+                message: '새 게시글 추가 완',
+                postId: postId,
+            });
         });
     });
 };
@@ -219,8 +200,7 @@ exports.updatePost = (req, res) => {
     });
 };
 
-
-// TODO - 댓글, 좋아요도 삭제 
+// TODO - 댓글, 좋아요도 삭제
 exports.deletePost = (req, res) => {
     const { postId } = req.params;
     const { user_id } = req.body;
@@ -264,8 +244,8 @@ exports.addLike = (req, res) => {
     const { postId } = req.params;
     const { user_id } = req.body;
 
-    if(!user_id){
-        return res.status(400).json({message:"필수 요소 안줌"});
+    if (!user_id) {
+        return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
     fs.readFile(likeFilePath, 'utf-8', (err, data) => {
@@ -282,7 +262,9 @@ exports.addLike = (req, res) => {
                     item.post_id === parseInt(postId, 10),
             )
         ) {
-            return res.status(200).json({ message: '이미 좋아요 눌렀습니다.',success:false });
+            return res
+                .status(200)
+                .json({ message: '이미 좋아요 눌렀습니다.', success: false });
         }
 
         const newLike = {
@@ -304,9 +286,11 @@ exports.addLike = (req, res) => {
 
                 const posts = JSON.parse(data);
 
-                const post = posts.find(p => p.post_id === parseInt(postId, 10));
+                const post = posts.find(
+                    p => p.post_id === parseInt(postId, 10),
+                );
 
-                if(!post){
+                if (!post) {
                     return console.error(err);
                 }
 
@@ -316,10 +300,10 @@ exports.addLike = (req, res) => {
                     if (err) {
                         console.error(err);
                     }
-                })
-            })
+                });
+            });
 
-            return res.status(201).json({ message: '좋아요',success:true });
+            return res.status(201).json({ message: '좋아요', success: true });
         });
     });
 };
@@ -341,12 +325,10 @@ exports.deleteLike = (req, res) => {
                 item.post_id === parseInt(postId, 10),
         );
 
-        if (
-            likeIndex === -1
-        ) {
+        if (likeIndex === -1) {
             return res
                 .status(200)
-                .json({ message: '이미 좋아요 취소했습니다.', success:false });
+                .json({ message: '이미 좋아요 취소했습니다.', success: false });
         }
 
         likes.splice(likeIndex, 1);
@@ -363,9 +345,11 @@ exports.deleteLike = (req, res) => {
 
                 const posts = JSON.parse(data);
 
-                const post = posts.find(p => p.post_id === parseInt(postId, 10));
+                const post = posts.find(
+                    p => p.post_id === parseInt(postId, 10),
+                );
 
-                if(!post){
+                if (!post) {
                     return console.error(err);
                 }
 
@@ -375,11 +359,12 @@ exports.deleteLike = (req, res) => {
                     if (err) {
                         console.error(err);
                     }
-                })
-            })
-            
+                });
+            });
 
-            return res.status(201).json({ message: '좋아요 취소',success:true });
+            return res
+                .status(201)
+                .json({ message: '좋아요 취소', success: true });
         });
     });
 };
