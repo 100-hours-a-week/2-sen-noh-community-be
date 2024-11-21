@@ -1,37 +1,30 @@
 [
     {
-        "comment_id": 4,
-        "post_id": 2,
+        "comment_id": 0,
+        "post_id": 0,
         "user_id": 1,
-        "date": "2024-11-09T11:30:25.120Z",
-        "comment": "댓글 수정"
+        "date": "2024-11-21T08:00:36.365Z",
+        "comment": "어쩌나 저쩌나 첫 댓글도 내 것이다."
     },
     {
-        "comment_id": 5,
-        "post_id": 2,
-        "user_id": 2,
-        "date": "2024-11-08T06:59:34.142Z",
-        "comment": "하이하이하하핳"
-    },
-    {
-        "comment_id": 7,
+        "comment_id": 1,
         "post_id": 1,
-        "user_id": 1,
-        "date": "2024-11-19T04:44:56.581Z",
-        "comment": "제대로 된 건가용dddd"
-    },
-    {
-        "comment_id": 8,
-        "post_id": 13,
-        "user_id": 1,
-        "date": "2024-11-19T05:49:18.630Z",
-        "comment": "그래 화이팅 하시고!"
-    },
-    {
-        "comment_id": 9,
-        "post_id": 13,
         "user_id": 2,
-        "date": "2024-11-19T05:53:18.916Z",
-        "comment": "뭐야 모하는디"
+        "date": "2024-11-21T08:02:17.184Z",
+        "comment": "그냥 그렇다구요;;"
+    },
+    {
+        "comment_id": 2,
+        "post_id": 0,
+        "user_id": 2,
+        "date": "2024-11-21T08:02:26.966Z",
+        "comment": "안돼 ㅜㅜㅠ"
+    },
+    {
+        "comment_id": 3,
+        "post_id": 0,
+        "user_id": 2,
+        "date": "2024-11-21T08:02:47.256Z",
+        "comment": "이 댓글 날짜가 닉네임글자에 따라 움직이는 건 디자인 잘못이다."
     }
 ]
