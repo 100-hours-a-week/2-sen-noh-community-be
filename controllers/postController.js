@@ -262,7 +262,11 @@ exports.deletePost = (req, res) => {
 
 exports.addLike = (req, res) => {
     const { postId } = req.params;
-    const { userId } = req.body;
+    const { user_id } = req.body;
+
+    if(!user_id){
+        return res.status(400).json({message:"필수 요소 안줌"});
+    }
 
     fs.readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
@@ -274,15 +278,15 @@ exports.addLike = (req, res) => {
         if (
             likes.some(
                 item =>
-                    item.user_id === userId &&
+                    item.user_id === user_id &&
                     item.post_id === parseInt(postId, 10),
             )
         ) {
-            return res.status(200).json({ message: '이미 좋아요 눌렀습니다.' });
+            return res.status(200).json({ message: '이미 좋아요 눌렀습니다.',success:false });
         }
 
         const newLike = {
-            user_id: userId,
+            user_id: user_id,
             post_id: parseInt(postId, 10),
         };
 
@@ -300,7 +304,11 @@ exports.addLike = (req, res) => {
 
                 const posts = JSON.parse(data);
 
-                const post = posts.find(p => p.post_id === postId);
+                const post = posts.find(p => p.post_id === parseInt(postId, 10));
+
+                if(!post){
+                    return console.error(err);
+                }
 
                 post.heart_cnt += 1;
 
@@ -311,14 +319,14 @@ exports.addLike = (req, res) => {
                 })
             })
 
-            return res.status(201).json({ message: '좋아요' });
+            return res.status(201).json({ message: '좋아요',success:true });
         });
     });
 };
 
 exports.deleteLike = (req, res) => {
     const { postId } = req.params;
-    const { userId } = req.body;
+    const { user_id } = req.body;
 
     fs.readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
@@ -327,23 +335,19 @@ exports.deleteLike = (req, res) => {
 
         const likes = JSON.parse(data);
 
+        const likeIndex = likes.findIndex(
+            item =>
+                item.user_id === user_id &&
+                item.post_id === parseInt(postId, 10),
+        );
+
         if (
-            !likes.some(
-                item =>
-                    item.user_id === userId &&
-                    item.post_id === parseInt(postId, 10),
-            )
+            likeIndex === -1
         ) {
             return res
                 .status(200)
-                .json({ message: '이미 좋아요 취소했습니다.' });
+                .json({ message: '이미 좋아요 취소했습니다.', success:false });
         }
-
-        const likeIndex = likes.findIndex(
-            item =>
-                item.user_id === userId &&
-                item.post_id === parseInt(postId, 10),
-        );
 
         likes.splice(likeIndex, 1);
 
@@ -359,7 +363,11 @@ exports.deleteLike = (req, res) => {
 
                 const posts = JSON.parse(data);
 
-                const post = posts.find(p => p.post_id === postId);
+                const post = posts.find(p => p.post_id === parseInt(postId, 10));
+
+                if(!post){
+                    return console.error(err);
+                }
 
                 post.heart_cnt -= 1;
 
@@ -371,7 +379,7 @@ exports.deleteLike = (req, res) => {
             })
             
 
-            return res.status(201).json({ message: '좋아요 취소' });
+            return res.status(201).json({ message: '좋아요 취소',success:true });
         });
     });
 };
