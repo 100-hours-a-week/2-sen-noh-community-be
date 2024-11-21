@@ -4,6 +4,7 @@ const path = require('path');
 const filePath = path.join(__dirname, '../data/posts.json');
 const likeFilePath = path.join(__dirname, '../data/likes.json');
 const userFilePath = path.join(__dirname, '../data/users.json');
+const commentFilePath = path.join(__dirname, '../data/comments.json');
 
 // TODO - post 순서 정하기
 exports.getPost = (req, res) => {
@@ -200,22 +201,26 @@ exports.updatePost = (req, res) => {
     });
 };
 
+const readFile = filePath =>
+    new Promise((resolve, reject) => {
+        fs.readFile(filePath, 'utf-8', (err, data) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(JSON.parse(data));
+        });
+    });
+
 // TODO - 댓글, 좋아요도 삭제
-exports.deletePost = (req, res) => {
+exports.deletePost = async (req, res) => {
     const { postId } = req.params;
     const { user_id } = req.body;
 
-    if (!user_id) {
-        return res.status(400).json({ message: '필수 요소 안줌' });
-    }
-
-    fs.readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 오류' });
+    try {
+        if (!user_id) {
+            return res.status(400).json({ message: '필수 요소 안줌' });
         }
-
-        const posts = JSON.parse(data);
-
+        const posts = await readFile(filePath);
         const postIndex = posts.findIndex(
             post => post.post_id === parseInt(postId, 10),
         );
@@ -232,12 +237,33 @@ exports.deletePost = (req, res) => {
 
         fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
             if (err) {
-                return res.status(500).json({ message: '파일 저장 오류' });
+                return reject(err);
             }
-
-            res.status(200).json({ message: '게시글 삭제 완료' });
         });
-    });
+
+        const comments = await readFile(commentFilePath);
+        const newCmt = comments.filter(
+            cmt => cmt.post_id !== parseInt(postId, 10),
+        );
+        fs.writeFile(commentFilePath, JSON.stringify(newCmt, null, 4), err => {
+            if (err) {
+                return reject(err);
+            }
+        });
+
+        const likes = await readFile(likeFilePath);
+        const newLikes = likes.filter(l => l.post_id !== parseInt(postId, 10));
+        fs.writeFile(likeFilePath, JSON.stringify(newLikes, null, 4), err => {
+            if (err) {
+                return reject(err);
+            }
+            return res.status(200).json({ message: '게시글 삭제' });
+        });
+        
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 };
 
 exports.addLike = (req, res) => {
