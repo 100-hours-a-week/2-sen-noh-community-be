@@ -1,0 +1,30 @@
+[
+    {
+        "user_id": 1,
+        "email": "test@test.com",
+        "password": "Ttest@123",
+        "nickname": "귀여운콩입니당",
+        "profile_image": null
+    },
+    {
+        "user_id": 2,
+        "email": "test2@test.com",
+        "password": "Ttest@123",
+        "nickname": "귀여운고양이다",
+        "profile_image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnpQcrynoHoEPtmH0FdYvU_GTdcu2RskGleA&s"
+    },
+    {
+        "user_id": 3,
+        "email": "sein@test.com",
+        "password": "Ttest@123",
+        "nickname": "세이니니니",
+        "profile_image": null
+    },
+    {
+        "user_id": 4,
+        "email": "seiny@test.com",
+        "password": "Ttest@123",
+        "nickname": "세이니",
+        "profile_image": null
+    }
+]

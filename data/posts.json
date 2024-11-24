@@ -1,0 +1,72 @@
+[
+    {
+        "post_id": 0,
+        "title": "첫 게시글 작성",
+        "content": "그건 바로 내가 한다",
+        "post_image": null,
+        "user_id": 1,
+        "heart_cnt": 0,
+        "comment_cnt": 3,
+        "visit_cnt": 8,
+        "date": "2024-11-21T08:00:24.927Z",
+        "is_liked": false,
+        "nickname": "귀여운콩",
+        "profile_image": null
+    },
+    {
+        "post_id": 1,
+        "title": "프사는 서버에서 올렸습니다.",
+        "content": "어쩌라구용 ",
+        "post_image": null,
+        "user_id": 2,
+        "heart_cnt": 0,
+        "comment_cnt": 1,
+        "visit_cnt": 9,
+        "date": "2024-11-21T08:02:13.415Z",
+        "is_liked": true,
+        "nickname": "귀여운고양이다",
+        "profile_image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnpQcrynoHoEPtmH0FdYvU_GTdcu2RskGleA&s"
+    },
+    {
+        "post_id": 2,
+        "title": "안녕하세용 주말이네요",
+        "content": "즐겁진 않네요 ㅎ",
+        "post_image": null,
+        "user_id": 4,
+        "heart_cnt": 0,
+        "comment_cnt": 0,
+        "visit_cnt": 1,
+        "date": "2024-11-24T02:27:01.518Z",
+        "is_liked": false,
+        "nickname": "세이니",
+        "profile_image": null
+    },
+    {
+        "post_id": 3,
+        "title": "게시글 사진 올리기",
+        "content": "서버에서 올렸습니당 ㅎㅎ,,",
+        "post_image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnpQcrynoHoEPtmH0FdYvU_GTdcu2RskGleA&s",
+        "user_id": 4,
+        "heart_cnt": 0,
+        "comment_cnt": 1,
+        "visit_cnt": 5,
+        "date": "2024-11-24T02:27:17.567Z",
+        "is_liked": false,
+        "nickname": "세이니",
+        "profile_image": null
+    },
+    {
+        "post_id": 4,
+        "title": "냐옹냐옹",
+        "content": "냥냥",
+        "post_image": null,
+        "user_id": 2,
+        "heart_cnt": 1,
+        "comment_cnt": 1,
+        "visit_cnt": 7,
+        "date": "2024-11-24T02:28:20.761Z",
+        "is_liked": false,
+        "nickname": "귀여운고양이다",
+        "profile_image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnpQcrynoHoEPtmH0FdYvU_GTdcu2RskGleA&s"
+    }
+]
