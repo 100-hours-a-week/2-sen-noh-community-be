@@ -6,8 +6,12 @@ const likeFilePath = path.join(__dirname, '../data/likes.json');
 const userFilePath = path.join(__dirname, '../data/users.json');
 const commentFilePath = path.join(__dirname, '../data/comments.json');
 
-// TODO - post 순서 정하기
 exports.getPost = (req, res) => {
+    const page = parseInt(req.query.page,10)|| 1;
+    const size = parseInt(req.query.size,10)|| 10;
+    console.log(page);
+    console.log(size);
+
     fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             res.status(500).json({ message: '파일 오류' });
@@ -40,9 +44,28 @@ exports.getPost = (req, res) => {
                 };
             });
 
+            const totalItems = simplifiedPosts.length;
+            const totalPages = Math.ceil(totalItems / size);
+            const startIndex = (page - 1) * size;
+            const endIndex = startIndex + size;
+
+            if (startIndex >= totalItems) {
+                return res.status(400).json({ message: '유효하지 않은 페이지 번호입니다.' });
+            }
+
+            console.log(`${startIndex}는 시작 ${endIndex}는 끝`);
+
+            const pagedPosts = simplifiedPosts.slice(startIndex, endIndex);
+
             res.status(200).json({
                 message: '게시글 목록',
-                data: simplifiedPosts,
+                data: pagedPosts,
+                meta: {
+                    totalItems,
+                    totalPages,
+                    currentPage: page,
+                    perPage: size,
+                },
             });
         });
     });
@@ -211,7 +234,6 @@ const readFile = filePath =>
         });
     });
 
-// TODO - 댓글, 좋아요도 삭제
 exports.deletePost = async (req, res) => {
     const { postId } = req.params;
     const { user_id } = req.body;
@@ -259,7 +281,7 @@ exports.deletePost = async (req, res) => {
             }
             return res.status(200).json({ message: '게시글 삭제' });
         });
-        
+
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
