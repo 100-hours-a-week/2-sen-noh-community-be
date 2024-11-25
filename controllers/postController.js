@@ -9,8 +9,6 @@ const commentFilePath = path.join(__dirname, '../data/comments.json');
 exports.getPost = (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
     const size = parseInt(req.query.size, 10) || 10;
-    console.log(page);
-    console.log(size);
 
     fs.readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
