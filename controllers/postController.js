@@ -7,8 +7,8 @@ const userFilePath = path.join(__dirname, '../data/users.json');
 const commentFilePath = path.join(__dirname, '../data/comments.json');
 
 exports.getPost = (req, res) => {
-    const page = parseInt(req.query.page,10)|| 1;
-    const size = parseInt(req.query.size,10)|| 10;
+    const page = parseInt(req.query.page, 10) || 1;
+    const size = parseInt(req.query.size, 10) || 10;
     console.log(page);
     console.log(size);
 
@@ -50,10 +50,10 @@ exports.getPost = (req, res) => {
             const endIndex = startIndex + size;
 
             if (startIndex >= totalItems) {
-                return res.status(400).json({ message: '유효하지 않은 페이지 번호입니다.' });
+                return res
+                    .status(400)
+                    .json({ message: '유효하지 않은 페이지 번호입니다.' });
             }
-
-            console.log(`${startIndex}는 시작 ${endIndex}는 끝`);
 
             const pagedPosts = simplifiedPosts.slice(startIndex, endIndex);
 
@@ -281,7 +281,6 @@ exports.deletePost = async (req, res) => {
             }
             return res.status(200).json({ message: '게시글 삭제' });
         });
-
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
