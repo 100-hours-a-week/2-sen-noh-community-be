@@ -1,16 +1,21 @@
-const fs = require('fs');
-const path = require('path');
-const bcrypt = require('bcrypt');
+import { readFile as _readFile, writeFile as _writeFile } from 'fs';
+import { hash } from 'bcrypt';
 
-const filePath = path.join(__dirname, '../data/users.json');
-const commentFilePath = path.join(__dirname, '../data/comments.json');
-const postFilePath = path.join(__dirname, '../data/posts.json');
-const likeFilePath = path.join(__dirname, '../data/likes.json');
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-exports.getUser = (req, res) => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const filePath = join(__dirname, '../data/users.json');
+const commentFilePath = join(__dirname, '../data/comments.json');
+const postFilePath = join(__dirname, '../data/posts.json');
+const likeFilePath = join(__dirname, '../data/likes.json');
+
+export function getUser(req, res) {
     const { userId } = req.params;
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -32,11 +37,11 @@ exports.getUser = (req, res) => {
 
         return res.status(200).json({ message: '유저 정보', data: userInfo });
     });
-};
+}
 
 const readFile = filePath =>
     new Promise((resolve, reject) => {
-        fs.readFile(filePath, 'utf-8', (err, data) => {
+        _readFile(filePath, 'utf-8', (err, data) => {
             if (err) {
                 return reject(err);
             }
@@ -46,7 +51,7 @@ const readFile = filePath =>
 
 const writeFile = (filePath, data) =>
     new Promise((resolve, reject) => {
-        fs.writeFile(filePath, JSON.stringify(data, null, 4), err => {
+        _writeFile(filePath, JSON.stringify(data, null, 4), err => {
             if (err) {
                 return reject(err);
             }
@@ -54,7 +59,7 @@ const writeFile = (filePath, data) =>
         });
     });
 
-exports.deleteUser = async (req, res) => {
+export async function deleteUser(req, res) {
     const { userId } = req.params;
     const userIdInt = parseInt(userId, 10);
 
@@ -108,9 +113,9 @@ exports.deleteUser = async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
     }
-};
+}
 
-exports.updateUser = (req, res) => {
+export function updateUser(req, res) {
     const { userId } = req.params;
     const { nickname, profile_image } = req.body;
 
@@ -118,7 +123,7 @@ exports.updateUser = (req, res) => {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 실패' });
         }
@@ -140,7 +145,7 @@ exports.updateUser = (req, res) => {
             users[userIndex].profile_image = profile_image;
         }
 
-        fs.writeFile(filePath, JSON.stringify(users, null, 4), err => {
+        _writeFile(filePath, JSON.stringify(users, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
@@ -148,9 +153,9 @@ exports.updateUser = (req, res) => {
             return res.status(200).json({ message: '유저 정보 업데이트 완료' });
         });
     });
-};
+}
 
-exports.updatePW = (req, res) => {
+export function updatePW(req, res) {
     const { userId } = req.params;
     const { password } = req.body;
 
@@ -158,7 +163,7 @@ exports.updatePW = (req, res) => {
         return res.status(500).json({ message: '필수 요소 안보냄' });
     }
 
-    fs.readFile(filePath, 'utf-8', async (err, data) => {
+    _readFile(filePath, 'utf-8', async (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -173,9 +178,9 @@ exports.updatePW = (req, res) => {
             return res.status(404).json({ message: '유저 정보 찾을 수 없음' });
         }
 
-        users[userIndex].password = await bcrypt.hash(password, 10);
+        users[userIndex].password = await hash(password, 10);
 
-        fs.writeFile(filePath, JSON.stringify(users, null, 4), err => {
+        _writeFile(filePath, JSON.stringify(users, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
@@ -183,4 +188,4 @@ exports.updatePW = (req, res) => {
             return res.status(200).json({ message: '비밀번호 수정' });
         });
     });
-};
+}

@@ -1,27 +1,29 @@
-const fs = require('fs');
-const path = require('path');
+import { readFile as _readFile, writeFile } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const filePath = path.join(__dirname, '../data/posts.json');
-const likeFilePath = path.join(__dirname, '../data/likes.json');
-const userFilePath = path.join(__dirname, '../data/users.json');
-const commentFilePath = path.join(__dirname, '../data/comments.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-exports.getPost = (req, res) => {
+const filePath = join(__dirname, '../data/posts.json');
+const likeFilePath = join(__dirname, '../data/likes.json');
+const userFilePath = join(__dirname, '../data/users.json');
+const commentFilePath = join(__dirname, '../data/comments.json');
+
+export function getPost(req, res) {
     const page = parseInt(req.query.page, 10) || 1;
     const size = parseInt(req.query.size, 10) || 10;
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
-            res.status(500).json({ message: '파일 오류' });
-            return;
+            return res.status(500).json({ message: '파일 오류' });
         }
 
         const posts = JSON.parse(data);
 
-        fs.readFile(userFilePath, 'utf-8', (err, data) => {
+        _readFile(userFilePath, 'utf-8', (err, data) => {
             if (err) {
-                res.status(500).json({ message: '파일 오류' });
-                return;
+                return res.status(500).json({ message: '파일 오류' });
             }
 
             const users = JSON.parse(data);
@@ -67,12 +69,12 @@ exports.getPost = (req, res) => {
             });
         });
     });
-};
+}
 
-exports.getDetailPost = (req, res) => {
+export function getDetailPost(req, res) {
     const { postId } = req.params;
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 오류' });
         }
@@ -86,7 +88,7 @@ exports.getDetailPost = (req, res) => {
             });
         }
 
-        fs.readFile(likeFilePath, 'utf-8', (err, data) => {
+        _readFile(likeFilePath, 'utf-8', (err, data) => {
             if (err) {
                 return res.status(500).json({ message: '파일 오류' });
             }
@@ -99,7 +101,7 @@ exports.getDetailPost = (req, res) => {
                     item.user_id === 1 && item.post_id === parseInt(postId, 10),
             );
 
-            fs.readFile(userFilePath, 'utf-8', (err, data) => {
+            _readFile(userFilePath, 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).json({ message: '파일 오류' });
                     return;
@@ -113,7 +115,7 @@ exports.getDetailPost = (req, res) => {
 
                 post.visit_cnt += 1;
 
-                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
                     if (err) {
                         console.error(err);
                     }
@@ -126,9 +128,9 @@ exports.getDetailPost = (req, res) => {
             });
         });
     });
-};
+}
 
-exports.addPost = (req, res) => {
+export function addPost(req, res) {
     const { user_id, title, content, post_image } = req.body;
     if (!user_id || !title || !content) {
         return res.status(400).json({
@@ -136,7 +138,7 @@ exports.addPost = (req, res) => {
         });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -159,7 +161,7 @@ exports.addPost = (req, res) => {
 
         posts.push(newPost);
 
-        fs.writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
+        writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
             if (err) {
                 return res.status(500).json({ message: '파일 저장 오류' });
             }
@@ -170,9 +172,9 @@ exports.addPost = (req, res) => {
             });
         });
     });
-};
+}
 
-exports.updatePost = (req, res) => {
+export function updatePost(req, res) {
     const { postId } = req.params;
     const { title, content, userId, contentImage } = req.body;
 
@@ -180,7 +182,7 @@ exports.updatePost = (req, res) => {
         return res.status(400).json({ message: '필수 요소 안넣음' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -211,7 +213,7 @@ exports.updatePost = (req, res) => {
             posts[postIndex].content_image = contentImage;
         }
 
-        fs.writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
+        writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
             if (err) {
                 return res.status(500).json({ message: '파일 저장 오류' });
             }
@@ -220,11 +222,11 @@ exports.updatePost = (req, res) => {
             });
         });
     });
-};
+}
 
 const readFile = filePath =>
     new Promise((resolve, reject) => {
-        fs.readFile(filePath, 'utf-8', (err, data) => {
+        _readFile(filePath, 'utf-8', (err, data) => {
             if (err) {
                 return reject(err);
             }
@@ -232,7 +234,7 @@ const readFile = filePath =>
         });
     });
 
-exports.deletePost = async (req, res) => {
+export async function deletePost(req, res) {
     const { postId } = req.params;
     const { user_id } = req.body;
 
@@ -255,7 +257,7 @@ exports.deletePost = async (req, res) => {
 
         posts.splice(postIndex, 1);
 
-        fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+        writeFile(filePath, JSON.stringify(posts, null, 4), err => {
             if (err) {
                 return reject(err);
             }
@@ -265,7 +267,7 @@ exports.deletePost = async (req, res) => {
         const newCmt = comments.filter(
             cmt => cmt.post_id !== parseInt(postId, 10),
         );
-        fs.writeFile(commentFilePath, JSON.stringify(newCmt, null, 4), err => {
+        writeFile(commentFilePath, JSON.stringify(newCmt, null, 4), err => {
             if (err) {
                 return reject(err);
             }
@@ -273,7 +275,7 @@ exports.deletePost = async (req, res) => {
 
         const likes = await readFile(likeFilePath);
         const newLikes = likes.filter(l => l.post_id !== parseInt(postId, 10));
-        fs.writeFile(likeFilePath, JSON.stringify(newLikes, null, 4), err => {
+        writeFile(likeFilePath, JSON.stringify(newLikes, null, 4), err => {
             if (err) {
                 return reject(err);
             }
@@ -283,9 +285,9 @@ exports.deletePost = async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
     }
-};
+}
 
-exports.addLike = (req, res) => {
+export function addLike(req, res) {
     const { postId } = req.params;
     const { user_id } = req.body;
 
@@ -293,7 +295,7 @@ exports.addLike = (req, res) => {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    fs.readFile(likeFilePath, 'utf-8', (err, data) => {
+    _readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 열기 에러요' });
         }
@@ -319,12 +321,12 @@ exports.addLike = (req, res) => {
 
         likes.push(newLike);
 
-        fs.writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
+        writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
-            fs.readFile(filePath, 'utf-8', (err, data) => {
+            _readFile(filePath, 'utf-8', (err, data) => {
                 if (err) {
                     console.error(err);
                 }
@@ -341,7 +343,7 @@ exports.addLike = (req, res) => {
 
                 post.heart_cnt += 1;
 
-                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
                     if (err) {
                         console.error(err);
                     }
@@ -351,13 +353,13 @@ exports.addLike = (req, res) => {
             return res.status(201).json({ message: '좋아요', success: true });
         });
     });
-};
+}
 
-exports.deleteLike = (req, res) => {
+export function deleteLike(req, res) {
     const { postId } = req.params;
     const { user_id } = req.body;
 
-    fs.readFile(likeFilePath, 'utf-8', (err, data) => {
+    _readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 열기 에러요' });
         }
@@ -378,12 +380,12 @@ exports.deleteLike = (req, res) => {
 
         likes.splice(likeIndex, 1);
 
-        fs.writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
+        writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
-            fs.readFile(filePath, 'utf-8', (err, data) => {
+            _readFile(filePath, 'utf-8', (err, data) => {
                 if (err) {
                     console.error(err);
                 }
@@ -400,7 +402,7 @@ exports.deleteLike = (req, res) => {
 
                 post.heart_cnt -= 1;
 
-                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
                     if (err) {
                         console.error(err);
                     }
@@ -412,4 +414,4 @@ exports.deleteLike = (req, res) => {
                 .json({ message: '좋아요 취소', success: true });
         });
     });
-};
+}

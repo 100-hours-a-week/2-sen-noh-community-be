@@ -1,6 +1,6 @@
-const helmet = require('helmet');
+import { contentSecurityPolicy } from 'helmet';
 
-const cspMiddleware = helmet.contentSecurityPolicy({
+export const cspMiddleware = contentSecurityPolicy({
     directives: {
         defaultSrc: ["'self'"],
         // 외부 CDN 사용하면 해당 도메인 추가
@@ -13,5 +13,3 @@ const cspMiddleware = helmet.contentSecurityPolicy({
         objectSrc: ["'none"],
     },
 });
-
-module.exports = cspMiddleware;

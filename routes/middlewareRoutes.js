@@ -1,11 +1,11 @@
-const express = require('express');
-const { timeoutMiddleware, timeoutHandler } = require('../middlewares/timeout');
-const cspMiddleware = require('../middlewares/csp');
-const corsMiddleware = require('../middlewares/cors');
-const loggerMiddleware = require('../middlewares/logger'); 
-const { generalLimiter, getLimiter } = require('../middlewares/rateLimit');
+import { Router } from 'express';
+import { timeoutMiddleware, timeoutHandler } from '../middlewares/timeout.js';
+import { cspMiddleware } from '../middlewares/csp.js';
+import { corsMiddleware } from '../middlewares/cors.js';
+import { loggerMiddleware } from '../middlewares/logger.js';
+import { generalLimiter, getLimiter } from '../middlewares/rateLimit.js';
 
-const router = express.Router();
+const router = Router();
 
 router.use(timeoutMiddleware);
 router.use(timeoutHandler);
@@ -18,4 +18,4 @@ router.get('*', getLimiter, (req, res, next) => {
     next();
 });
 
-module.exports = router;
+export default router;
