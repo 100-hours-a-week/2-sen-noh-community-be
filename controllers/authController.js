@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const filePath = path.join(__dirname, '../data/users.json');
 
@@ -10,16 +11,26 @@ exports.login = (req, res) => {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    fs.readFile(filePath, 'utf-8', async (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
 
         const users = JSON.parse(data);
 
-        const user = users.find(
-            item => item.email === email && item.password === password,
-        );
+        const getUser = async (email, password) => {
+            for (let item of users) {
+                if (
+                    item.email === email &&
+                    (await bcrypt.compare(password, item.password))
+                ) {
+                    return item;
+                }
+            }
+            return null;
+        };
+
+        const user = await getUser(email, password);
 
         if (!user) {
             return res
@@ -39,8 +50,6 @@ exports.login = (req, res) => {
     });
 };
 
-// TODO - 닉네임 중복, 이메일 중복 포함하기
-// TODO - 암호화 진행시 비번 유효성 검사 빼도 될듯
 exports.signIn = (req, res) => {
     console.log('hi');
     const { email, password, nickname, profile_image } = req.body;
@@ -73,17 +82,28 @@ exports.signIn = (req, res) => {
         });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    fs.readFile(filePath, 'utf-8', async (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
 
         const users = JSON.parse(data);
 
+        if (
+            users.some(
+                item => item.email === email || item.nickname === nickname,
+            )
+        ) {
+            return res.status(400).json({
+                message: '중복 에러',
+            });
+        }
+
+        const hashedPW = await bcrypt.hash(password, 10);
         const newUser = {
             user_id: users.length > 0 ? users[users.length - 1].user_id + 1 : 1,
             email,
-            password,
+            password: hashedPW,
             nickname,
             profile_image: profile_image !== undefined ? profile_image : null,
         };
