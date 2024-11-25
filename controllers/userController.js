@@ -1,6 +1,6 @@
-const { json } = require('express');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const filePath = path.join(__dirname, '../data/users.json');
 const commentFilePath = path.join(__dirname, '../data/comments.json');
@@ -158,7 +158,7 @@ exports.updatePW = (req, res) => {
         return res.status(500).json({ message: '필수 요소 안보냄' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    fs.readFile(filePath, 'utf-8', async (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -173,7 +173,7 @@ exports.updatePW = (req, res) => {
             return res.status(404).json({ message: '유저 정보 찾을 수 없음' });
         }
 
-        users[userIndex].password = password;
+        users[userIndex].password = await bcrypt.hash(password, 10);
 
         fs.writeFile(filePath, JSON.stringify(users, null, 4), err => {
             if (err) {
