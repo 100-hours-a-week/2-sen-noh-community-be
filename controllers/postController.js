@@ -74,6 +74,10 @@ export function getPost(req, res) {
 export function getDetailPost(req, res) {
     const { postId } = req.params;
 
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
     _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 오류' });
@@ -95,10 +99,10 @@ export function getDetailPost(req, res) {
 
             const likes = JSON.parse(data);
 
-            // TODO - 세션 구현 뒤 user_id 받아와서 변경
             post.is_liked = likes.some(
                 item =>
-                    item.user_id === 1 && item.post_id === parseInt(postId, 10),
+                    item.user_id === req.session.userId &&
+                    item.post_id === parseInt(postId, 10),
             );
 
             _readFile(userFilePath, 'utf-8', (err, data) => {
@@ -131,8 +135,13 @@ export function getDetailPost(req, res) {
 }
 
 export function addPost(req, res) {
-    const { user_id, title, content, post_image } = req.body;
-    if (!user_id || !title || !content) {
+    const { title, content, post_image } = req.body;
+
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    if (!title || !content) {
         return res.status(400).json({
             message: '필수안보냄',
         });
@@ -152,7 +161,7 @@ export function addPost(req, res) {
             title,
             content,
             post_image: post_image !== undefined ? post_image : null,
-            user_id: user_id,
+            user_id: req.session.userId,
             heart_cnt: 0,
             comment_cnt: 0,
             visit_cnt: 0,
@@ -176,10 +185,10 @@ export function addPost(req, res) {
 
 export function updatePost(req, res) {
     const { postId } = req.params;
-    const { title, content, userId, contentImage } = req.body;
+    const { title, content, contentImage } = req.body;
 
-    if (!userId) {
-        return res.status(400).json({ message: '필수 요소 안넣음' });
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
     }
 
     _readFile(filePath, 'utf-8', (err, data) => {
@@ -197,7 +206,7 @@ export function updatePost(req, res) {
             return res.status(404).json({ message: '게시글 찾을 수 없음' });
         }
 
-        if (userId !== posts[postIndex].user_id) {
+        if (req.session.userId !== posts[postIndex].user_id) {
             return res.status(401).json({ message: '수정 권한 없음' });
         }
 
@@ -236,11 +245,10 @@ const readFile = filePath =>
 
 export async function deletePost(req, res) {
     const { postId } = req.params;
-    const { user_id } = req.body;
 
     try {
-        if (!user_id) {
-            return res.status(400).json({ message: '필수 요소 안줌' });
+        if (!req.session.userId) {
+            return res.status(401).json({ message: '세션 만료' });
         }
         const posts = await readFile(filePath);
         const postIndex = posts.findIndex(
@@ -251,7 +259,7 @@ export async function deletePost(req, res) {
             return res.status(404).json({ message: '찾을 수 없는 게시글' });
         }
 
-        if (posts[postIndex].user_id !== user_id) {
+        if (posts[postIndex].user_id !== req.session.userId) {
             return res.status(401).json({ message: '삭제 권한 없음' });
         }
 
@@ -289,10 +297,9 @@ export async function deletePost(req, res) {
 
 export function addLike(req, res) {
     const { postId } = req.params;
-    const { user_id } = req.body;
 
-    if (!user_id) {
-        return res.status(400).json({ message: '필수 요소 안줌' });
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '필수 요소 안줌' });
     }
 
     _readFile(likeFilePath, 'utf-8', (err, data) => {
@@ -305,7 +312,7 @@ export function addLike(req, res) {
         if (
             likes.some(
                 item =>
-                    item.user_id === user_id &&
+                    item.user_id === req.session.userId &&
                     item.post_id === parseInt(postId, 10),
             )
         ) {
@@ -315,7 +322,7 @@ export function addLike(req, res) {
         }
 
         const newLike = {
-            user_id: user_id,
+            user_id: req.session.userId,
             post_id: parseInt(postId, 10),
         };
 
@@ -357,7 +364,10 @@ export function addLike(req, res) {
 
 export function deleteLike(req, res) {
     const { postId } = req.params;
-    const { user_id } = req.body;
+
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '필수 요소 안줌' });
+    }
 
     _readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
@@ -368,7 +378,7 @@ export function deleteLike(req, res) {
 
         const likeIndex = likes.findIndex(
             item =>
-                item.user_id === user_id &&
+                item.user_id === req.session.userId &&
                 item.post_id === parseInt(postId, 10),
         );
 

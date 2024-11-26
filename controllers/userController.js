@@ -12,8 +12,11 @@ const commentFilePath = join(__dirname, '../data/comments.json');
 const postFilePath = join(__dirname, '../data/posts.json');
 const likeFilePath = join(__dirname, '../data/likes.json');
 
+// TODO - parseint 할 필요가 있는 지 확인
 export function getUser(req, res) {
-    const { userId } = req.params;
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
 
     _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
@@ -22,7 +25,9 @@ export function getUser(req, res) {
 
         const users = JSON.parse(data);
 
-        const user = users.find(item => item.user_id === parseInt(userId, 10));
+        const user = users.find(
+            item => item.user_id === parseInt(req.session.userId, 10),
+        );
 
         if (!user) {
             return res
@@ -60,8 +65,11 @@ const writeFile = (filePath, data) =>
     });
 
 export async function deleteUser(req, res) {
-    const { userId } = req.params;
-    const userIdInt = parseInt(userId, 10);
+    const userIdInt = parseInt(req.session.userId, 10);
+
+    if (!userIdInt) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
 
     try {
         // 유저 삭제
@@ -116,8 +124,11 @@ export async function deleteUser(req, res) {
 }
 
 export function updateUser(req, res) {
-    const { userId } = req.params;
     const { nickname, profile_image } = req.body;
+
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
 
     if (!nickname && !profile_image) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });
@@ -131,7 +142,7 @@ export function updateUser(req, res) {
         const users = JSON.parse(data);
 
         const userIndex = users.findIndex(
-            item => item.user_id === parseInt(userId, 10),
+            item => item.user_id === parseInt(req.session.userId, 10),
         );
 
         if (userIndex === -1) {
@@ -156,8 +167,11 @@ export function updateUser(req, res) {
 }
 
 export function updatePW(req, res) {
-    const { userId } = req.params;
     const { password } = req.body;
+
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
 
     if (!password) {
         return res.status(500).json({ message: '필수 요소 안보냄' });
@@ -171,7 +185,7 @@ export function updatePW(req, res) {
         const users = JSON.parse(data);
 
         const userIndex = users.findIndex(
-            item => item.user_id === parseInt(userId, 10),
+            item => item.user_id === parseInt(req.session.userId, 10),
         );
 
         if (userIndex === -1) {

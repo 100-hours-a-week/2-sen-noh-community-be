@@ -1,8 +1,10 @@
 import cors from 'cors';
 
 export const corsMiddleware = cors({
-    origin: '*', // 클라이언트가 요청을 보내는 도메인과 포트
-    methods: ['GET', 'POST', 'DELETE', 'PATCH'], // 허용할 HTTP 메소드
+    origin: 'http://localhost:3002',
+    methods: ['GET', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 });
+
+export const corsM = cors();

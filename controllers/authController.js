@@ -42,6 +42,8 @@ export function login(req, res) {
                 .json({ message: '아이디와 패스워드가 일치하지 않습니다.' });
         }
 
+        req.session.userId = user.user_id;
+
         return res.status(201).json({
             message: '로그인 완료',
             data: {

@@ -52,9 +52,13 @@ export function getComment(req, res) {
 
 export function addComment(req, res) {
     const { postId } = req;
-    const { user_id, comment } = req.body;
+    const { comment } = req.body;
 
-    if (!user_id || !comment) {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    if (!comment) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
@@ -71,7 +75,7 @@ export function addComment(req, res) {
                     ? comments[comments.length - 1].comment_id + 1
                     : 0,
             post_id: parseInt(postId, 10),
-            user_id: user_id,
+            user_id: req.session.userId,
             date: new Date().toISOString(),
             comment,
         };
@@ -114,9 +118,13 @@ export function addComment(req, res) {
 export function updateComment(req, res) {
     // const { postId } = req;
     const { commentId } = req.params;
-    const { user_id, comment } = req.body;
+    const { comment } = req.body;
 
-    if (!user_id || !comment) {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    if (!comment) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
     }
 
@@ -135,7 +143,7 @@ export function updateComment(req, res) {
             return res.status(404).json({ message: '댓글을 찾을 수 없음' });
         }
 
-        if (editCmt.user_id !== user_id) {
+        if (editCmt.user_id !== req.session.userId) {
             return res.status(401).json({ message: '접근 권한 없음둥' });
         }
 
@@ -154,10 +162,9 @@ export function updateComment(req, res) {
 
 export function deleteComment(req, res) {
     const { commentId } = req.params;
-    const { user_id } = req.body;
 
-    if (!user_id) {
-        return res.status(400).json({ message: '필수 요소 안보냄' });
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
     }
 
     readFile(filePath, 'utf-8', (err, data) => {
@@ -175,7 +182,7 @@ export function deleteComment(req, res) {
             return res.status(404).json({ message: '댓글을 찾을 수 없음' });
         }
 
-        if (comments[editCmtIndex].user_id !== user_id) {
+        if (comments[editCmtIndex].user_id !== req.session.userId) {
             return res.status(401).json({ message: '삭제 권한 없음' });
         }
 
