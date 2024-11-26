@@ -203,3 +203,13 @@ export function updatePW(req, res) {
         });
     });
 }
+
+export function logout(req, res) {
+    req.session.destroy(err => {
+        if (err) {
+            console.error('Session destroy error:', err);
+        }
+
+        res.status(200).send({ message: '로그아웃 성공' });
+    });
+}

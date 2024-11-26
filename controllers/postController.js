@@ -299,7 +299,7 @@ export function addLike(req, res) {
     const { postId } = req.params;
 
     if (!req.session.userId) {
-        return res.status(401).json({ message: '필수 요소 안줌' });
+        return res.status(401).json({ message: '세션 만료' });
     }
 
     _readFile(likeFilePath, 'utf-8', (err, data) => {
