@@ -9,10 +9,10 @@ import {
 
 const router = Router();
 
-router.delete('/:userId', deleteUser);
-router.patch('/:userId/userInfo', updateUser);
-router.patch('/:userId/password', updatePW);
-router.get('/:userId', getUser);
+router.delete('/', deleteUser);
+router.patch('/userInfo', updateUser);
+router.patch('/password', updatePW);
+router.get('/', getUser);
 router.post('/logout', logout);
 
 export default router;
