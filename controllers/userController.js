@@ -124,7 +124,12 @@ export async function deleteUser(req, res) {
 }
 
 export function updateUser(req, res) {
-    const { nickname, profile_image } = req.body;
+    const { nickname } = req.body;
+    let profile_image;
+
+    if (req.file) {
+        profile_image = req.file.path;
+    }
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
@@ -153,7 +158,8 @@ export function updateUser(req, res) {
             users[userIndex].nickname = nickname;
         }
         if (profile_image) {
-            users[userIndex].profile_image = profile_image;
+            users[userIndex].profile_image =
+                'http://localhost:3000/' + profile_image;
         }
 
         _writeFile(filePath, JSON.stringify(users, null, 4), err => {
