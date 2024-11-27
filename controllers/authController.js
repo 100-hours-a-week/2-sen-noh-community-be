@@ -1,17 +1,23 @@
-const fs = require('fs');
-const path = require('path');
-const bcrypt = require('bcrypt');
+import multer from 'multer';
+import path from 'path';
+import { readFile, writeFile } from 'fs';
+import { compare, hash } from 'bcrypt';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const filePath = path.join(__dirname, '../data/users.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-exports.login = (req, res) => {
+const filePath = join(__dirname, '../data/users.json');
+
+export function login(req, res) {
     const { email, password } = req.body;
 
     if (!email || !password) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    fs.readFile(filePath, 'utf-8', async (err, data) => {
+    readFile(filePath, 'utf-8', async (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -22,7 +28,7 @@ exports.login = (req, res) => {
             for (let item of users) {
                 if (
                     item.email === email &&
-                    (await bcrypt.compare(password, item.password))
+                    (await compare(password, item.password))
                 ) {
                     return item;
                 }
@@ -38,6 +44,8 @@ exports.login = (req, res) => {
                 .json({ message: '아이디와 패스워드가 일치하지 않습니다.' });
         }
 
+        req.session.userId = user.user_id;
+
         return res.status(201).json({
             message: '로그인 완료',
             data: {
@@ -48,11 +56,15 @@ exports.login = (req, res) => {
             },
         });
     });
-};
+}
 
-exports.signIn = (req, res) => {
-    console.log('hi');
-    const { email, password, nickname, profile_image } = req.body;
+export function signIn(req, res) {
+    const { email, password, nickname } = req.body;
+    let profile_image;
+
+    if (req.file) {
+        profile_image = req.file.path;
+    }
 
     if (!email || !password || !nickname) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
@@ -82,7 +94,7 @@ exports.signIn = (req, res) => {
         });
     }
 
-    fs.readFile(filePath, 'utf-8', async (err, data) => {
+    readFile(filePath, 'utf-8', async (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -99,18 +111,21 @@ exports.signIn = (req, res) => {
             });
         }
 
-        const hashedPW = await bcrypt.hash(password, 10);
+        const hashedPW = await hash(password, 10);
         const newUser = {
             user_id: users.length > 0 ? users[users.length - 1].user_id + 1 : 1,
             email,
             password: hashedPW,
             nickname,
-            profile_image: profile_image !== undefined ? profile_image : null,
+            profile_image:
+                profile_image !== undefined
+                    ? 'http://localhost:3000/' + profile_image
+                    : null,
         };
 
         users.push(newUser);
 
-        fs.writeFile(filePath, JSON.stringify(users, null, 4), err => {
+        writeFile(filePath, JSON.stringify(users, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
@@ -120,16 +135,16 @@ exports.signIn = (req, res) => {
                 .json({ message: '회원가입 완료', user_id: newUser.user_id });
         });
     });
-};
+}
 
-exports.checkEmail = (req, res) => {
+export function checkEmail(req, res) {
     const { email } = req.body;
 
     if (!email) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 쓰기 오류' });
         }
@@ -142,16 +157,16 @@ exports.checkEmail = (req, res) => {
             .status(200)
             .json({ message: '중복 여부', data: { is_existed: isDup } });
     });
-};
+}
 
-exports.checkNickname = (req, res) => {
+export function checkNickname(req, res) {
     const { nickname } = req.body;
 
     if (!nickname) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 쓰기 오류' });
         }
@@ -164,4 +179,4 @@ exports.checkNickname = (req, res) => {
             .status(200)
             .json({ message: '중복 여부', data: { is_existed: isDup } });
     });
-};
+}

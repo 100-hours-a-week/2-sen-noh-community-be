@@ -1,13 +1,23 @@
-const express = require('express');
-const router = express.Router();
-const postController = require('../controllers/postController');
+import { Router } from 'express';
+import {
+    getPost,
+    getDetailPost,
+    addPost,
+    updatePost,
+    deletePost,
+    addLike,
+    deleteLike,
+} from '../controllers/postController.js';
+import { upload } from '../middlewares/upload.js';
 
-router.get('/', postController.getPost);
-router.get('/:postId', postController.getDetailPost);
-router.post('/', postController.addPost);
-router.patch('/:postId', postController.updatePost);
-router.delete('/:postId', postController.deletePost);
-router.post('/:postId/like', postController.addLike);
-router.delete('/:postId/like', postController.deleteLike);
+const router = Router();
 
-module.exports = router;
+router.get('/', getPost);
+router.get('/:postId', getDetailPost);
+router.post('/', upload.single('post_image'), addPost);
+router.patch('/:postId', upload.single('post_image'), updatePost);
+router.delete('/:postId', deletePost);
+router.post('/:postId/like', addLike);
+router.delete('/:postId/like', deleteLike);
+
+export default router;

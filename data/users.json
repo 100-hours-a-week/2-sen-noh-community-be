@@ -4,7 +4,7 @@
         "email": "test@test.com",
         "password": "$2b$10$w7pUcyftxye1a8OWX42AluNpIc0WfHvY3xa3sQy/6BTFCfpIJuSMS",
         "nickname": "귀여운콩입니당",
-        "profile_image": null
+        "profile_image": "http://localhost:3000/uploads/meow.jpg"
     },
     {
         "user_id": 2,

@@ -1,10 +1,19 @@
-const express = require('express');
-const router = express.Router();
-const userController = require('../controllers/userController');
+import { Router } from 'express';
+import {
+    deleteUser,
+    updateUser,
+    updatePW,
+    getUser,
+    logout,
+} from '../controllers/userController.js';
+import { upload } from '../middlewares/upload.js';
 
-router.delete('/:userId', userController.deleteUser);
-router.patch('/:userId/userInfo', userController.updateUser);
-router.patch('/:userId/password', userController.updatePW);
-router.get('/:userId', userController.getUser);
+const router = Router();
 
-module.exports = router;
+router.delete('/', deleteUser);
+router.patch('/userInfo', upload.single('profile_image'), updateUser);
+router.patch('/password', updatePW);
+router.get('/', getUser);
+router.post('/logout', logout);
+
+export default router;

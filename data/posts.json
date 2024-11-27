@@ -138,5 +138,19 @@
         "is_liked": false,
         "nickname": "귀여운콩입니당",
         "profile_image": null
+    },
+    {
+        "post_id": 10,
+        "title": "사진 업로드 구현 완료",
+        "content": "수정 완료 했습니당 감사합니당",
+        "post_image": "http://localhost:3000/uploads/IMG_1533.JPG",
+        "user_id": 1,
+        "heart_cnt": 0,
+        "comment_cnt": 1,
+        "visit_cnt": 2,
+        "date": "2024-11-27T10:42:00.616Z",
+        "is_liked": false,
+        "nickname": "귀여운콩입니당",
+        "profile_image": null
     }
 ]

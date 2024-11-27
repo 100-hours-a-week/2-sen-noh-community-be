@@ -1,27 +1,29 @@
-const fs = require('fs');
-const path = require('path');
+import { readFile as _readFile, writeFile } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const filePath = path.join(__dirname, '../data/posts.json');
-const likeFilePath = path.join(__dirname, '../data/likes.json');
-const userFilePath = path.join(__dirname, '../data/users.json');
-const commentFilePath = path.join(__dirname, '../data/comments.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-exports.getPost = (req, res) => {
+const filePath = join(__dirname, '../data/posts.json');
+const likeFilePath = join(__dirname, '../data/likes.json');
+const userFilePath = join(__dirname, '../data/users.json');
+const commentFilePath = join(__dirname, '../data/comments.json');
+
+export function getPost(req, res) {
     const page = parseInt(req.query.page, 10) || 1;
     const size = parseInt(req.query.size, 10) || 10;
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
-            res.status(500).json({ message: '파일 오류' });
-            return;
+            return res.status(500).json({ message: '파일 오류' });
         }
 
         const posts = JSON.parse(data);
 
-        fs.readFile(userFilePath, 'utf-8', (err, data) => {
+        _readFile(userFilePath, 'utf-8', (err, data) => {
             if (err) {
-                res.status(500).json({ message: '파일 오류' });
-                return;
+                return res.status(500).json({ message: '파일 오류' });
             }
 
             const users = JSON.parse(data);
@@ -67,12 +69,16 @@ exports.getPost = (req, res) => {
             });
         });
     });
-};
+}
 
-exports.getDetailPost = (req, res) => {
+export function getDetailPost(req, res) {
     const { postId } = req.params;
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 오류' });
         }
@@ -86,20 +92,20 @@ exports.getDetailPost = (req, res) => {
             });
         }
 
-        fs.readFile(likeFilePath, 'utf-8', (err, data) => {
+        _readFile(likeFilePath, 'utf-8', (err, data) => {
             if (err) {
                 return res.status(500).json({ message: '파일 오류' });
             }
 
             const likes = JSON.parse(data);
 
-            // TODO - 세션 구현 뒤 user_id 받아와서 변경
             post.is_liked = likes.some(
                 item =>
-                    item.user_id === 1 && item.post_id === parseInt(postId, 10),
+                    item.user_id === req.session.userId &&
+                    item.post_id === parseInt(postId, 10),
             );
 
-            fs.readFile(userFilePath, 'utf-8', (err, data) => {
+            _readFile(userFilePath, 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).json({ message: '파일 오류' });
                     return;
@@ -113,7 +119,7 @@ exports.getDetailPost = (req, res) => {
 
                 post.visit_cnt += 1;
 
-                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
                     if (err) {
                         console.error(err);
                     }
@@ -126,17 +132,27 @@ exports.getDetailPost = (req, res) => {
             });
         });
     });
-};
+}
 
-exports.addPost = (req, res) => {
-    const { user_id, title, content, post_image } = req.body;
-    if (!user_id || !title || !content) {
+export function addPost(req, res) {
+    const { title, content } = req.body;
+    let post_image;
+
+    if (req.file) {
+        post_image = req.file.path;
+    }
+
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    if (!title || !content) {
         return res.status(400).json({
             message: '필수안보냄',
         });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -149,8 +165,11 @@ exports.addPost = (req, res) => {
             post_id: postId,
             title,
             content,
-            post_image: post_image !== undefined ? post_image : null,
-            user_id: user_id,
+            post_image:
+                post_image !== undefined
+                    ? 'http://localhost:3000/' + post_image
+                    : null,
+            user_id: req.session.userId,
             heart_cnt: 0,
             comment_cnt: 0,
             visit_cnt: 0,
@@ -159,7 +178,7 @@ exports.addPost = (req, res) => {
 
         posts.push(newPost);
 
-        fs.writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
+        writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
             if (err) {
                 return res.status(500).json({ message: '파일 저장 오류' });
             }
@@ -170,17 +189,22 @@ exports.addPost = (req, res) => {
             });
         });
     });
-};
+}
 
-exports.updatePost = (req, res) => {
+export function updatePost(req, res) {
     const { postId } = req.params;
-    const { title, content, userId, contentImage } = req.body;
+    const { title, content } = req.body;
+    let post_image;
 
-    if (!userId) {
-        return res.status(400).json({ message: '필수 요소 안넣음' });
+    if (req.file) {
+        post_image = req.file.path;
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -195,7 +219,7 @@ exports.updatePost = (req, res) => {
             return res.status(404).json({ message: '게시글 찾을 수 없음' });
         }
 
-        if (userId !== posts[postIndex].user_id) {
+        if (req.session.userId !== posts[postIndex].user_id) {
             return res.status(401).json({ message: '수정 권한 없음' });
         }
 
@@ -207,11 +231,11 @@ exports.updatePost = (req, res) => {
             posts[postIndex].content = content;
         }
 
-        if (contentImage) {
-            posts[postIndex].content_image = contentImage;
+        if (post_image) {
+            posts[postIndex].post_image = 'http://localhost:3000/' + post_image;
         }
 
-        fs.writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
+        writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
             if (err) {
                 return res.status(500).json({ message: '파일 저장 오류' });
             }
@@ -220,11 +244,11 @@ exports.updatePost = (req, res) => {
             });
         });
     });
-};
+}
 
 const readFile = filePath =>
     new Promise((resolve, reject) => {
-        fs.readFile(filePath, 'utf-8', (err, data) => {
+        _readFile(filePath, 'utf-8', (err, data) => {
             if (err) {
                 return reject(err);
             }
@@ -232,13 +256,13 @@ const readFile = filePath =>
         });
     });
 
-exports.deletePost = async (req, res) => {
+//업로드속 사진도 삭제하기
+export async function deletePost(req, res) {
     const { postId } = req.params;
-    const { user_id } = req.body;
 
     try {
-        if (!user_id) {
-            return res.status(400).json({ message: '필수 요소 안줌' });
+        if (!req.session.userId) {
+            return res.status(401).json({ message: '세션 만료' });
         }
         const posts = await readFile(filePath);
         const postIndex = posts.findIndex(
@@ -249,13 +273,13 @@ exports.deletePost = async (req, res) => {
             return res.status(404).json({ message: '찾을 수 없는 게시글' });
         }
 
-        if (posts[postIndex].user_id !== user_id) {
+        if (posts[postIndex].user_id !== req.session.userId) {
             return res.status(401).json({ message: '삭제 권한 없음' });
         }
 
         posts.splice(postIndex, 1);
 
-        fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+        writeFile(filePath, JSON.stringify(posts, null, 4), err => {
             if (err) {
                 return reject(err);
             }
@@ -265,7 +289,7 @@ exports.deletePost = async (req, res) => {
         const newCmt = comments.filter(
             cmt => cmt.post_id !== parseInt(postId, 10),
         );
-        fs.writeFile(commentFilePath, JSON.stringify(newCmt, null, 4), err => {
+        writeFile(commentFilePath, JSON.stringify(newCmt, null, 4), err => {
             if (err) {
                 return reject(err);
             }
@@ -273,7 +297,7 @@ exports.deletePost = async (req, res) => {
 
         const likes = await readFile(likeFilePath);
         const newLikes = likes.filter(l => l.post_id !== parseInt(postId, 10));
-        fs.writeFile(likeFilePath, JSON.stringify(newLikes, null, 4), err => {
+        writeFile(likeFilePath, JSON.stringify(newLikes, null, 4), err => {
             if (err) {
                 return reject(err);
             }
@@ -283,17 +307,16 @@ exports.deletePost = async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
     }
-};
+}
 
-exports.addLike = (req, res) => {
+export function addLike(req, res) {
     const { postId } = req.params;
-    const { user_id } = req.body;
 
-    if (!user_id) {
-        return res.status(400).json({ message: '필수 요소 안줌' });
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
     }
 
-    fs.readFile(likeFilePath, 'utf-8', (err, data) => {
+    _readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 열기 에러요' });
         }
@@ -303,7 +326,7 @@ exports.addLike = (req, res) => {
         if (
             likes.some(
                 item =>
-                    item.user_id === user_id &&
+                    item.user_id === req.session.userId &&
                     item.post_id === parseInt(postId, 10),
             )
         ) {
@@ -313,18 +336,18 @@ exports.addLike = (req, res) => {
         }
 
         const newLike = {
-            user_id: user_id,
+            user_id: req.session.userId,
             post_id: parseInt(postId, 10),
         };
 
         likes.push(newLike);
 
-        fs.writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
+        writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
-            fs.readFile(filePath, 'utf-8', (err, data) => {
+            _readFile(filePath, 'utf-8', (err, data) => {
                 if (err) {
                     console.error(err);
                 }
@@ -341,7 +364,7 @@ exports.addLike = (req, res) => {
 
                 post.heart_cnt += 1;
 
-                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
                     if (err) {
                         console.error(err);
                     }
@@ -351,13 +374,16 @@ exports.addLike = (req, res) => {
             return res.status(201).json({ message: '좋아요', success: true });
         });
     });
-};
+}
 
-exports.deleteLike = (req, res) => {
+export function deleteLike(req, res) {
     const { postId } = req.params;
-    const { user_id } = req.body;
 
-    fs.readFile(likeFilePath, 'utf-8', (err, data) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '필수 요소 안줌' });
+    }
+
+    _readFile(likeFilePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 열기 에러요' });
         }
@@ -366,7 +392,7 @@ exports.deleteLike = (req, res) => {
 
         const likeIndex = likes.findIndex(
             item =>
-                item.user_id === user_id &&
+                item.user_id === req.session.userId &&
                 item.post_id === parseInt(postId, 10),
         );
 
@@ -378,12 +404,12 @@ exports.deleteLike = (req, res) => {
 
         likes.splice(likeIndex, 1);
 
-        fs.writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
+        writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
-            fs.readFile(filePath, 'utf-8', (err, data) => {
+            _readFile(filePath, 'utf-8', (err, data) => {
                 if (err) {
                     console.error(err);
                 }
@@ -400,7 +426,7 @@ exports.deleteLike = (req, res) => {
 
                 post.heart_cnt -= 1;
 
-                fs.writeFile(filePath, JSON.stringify(posts, null, 4), err => {
+                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
                     if (err) {
                         console.error(err);
                     }
@@ -412,4 +438,4 @@ exports.deleteLike = (req, res) => {
                 .json({ message: '좋아요 취소', success: true });
         });
     });
-};
+}

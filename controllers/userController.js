@@ -1,23 +1,33 @@
-const fs = require('fs');
-const path = require('path');
-const bcrypt = require('bcrypt');
+import { readFile as _readFile, writeFile as _writeFile } from 'fs';
+import { hash } from 'bcrypt';
 
-const filePath = path.join(__dirname, '../data/users.json');
-const commentFilePath = path.join(__dirname, '../data/comments.json');
-const postFilePath = path.join(__dirname, '../data/posts.json');
-const likeFilePath = path.join(__dirname, '../data/likes.json');
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-exports.getUser = (req, res) => {
-    const { userId } = req.params;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+const filePath = join(__dirname, '../data/users.json');
+const commentFilePath = join(__dirname, '../data/comments.json');
+const postFilePath = join(__dirname, '../data/posts.json');
+const likeFilePath = join(__dirname, '../data/likes.json');
+
+// TODO - parseint 할 필요가 있는 지 확인
+export function getUser(req, res) {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
 
         const users = JSON.parse(data);
 
-        const user = users.find(item => item.user_id === parseInt(userId, 10));
+        const user = users.find(
+            item => item.user_id === parseInt(req.session.userId, 10),
+        );
 
         if (!user) {
             return res
@@ -32,11 +42,11 @@ exports.getUser = (req, res) => {
 
         return res.status(200).json({ message: '유저 정보', data: userInfo });
     });
-};
+}
 
 const readFile = filePath =>
     new Promise((resolve, reject) => {
-        fs.readFile(filePath, 'utf-8', (err, data) => {
+        _readFile(filePath, 'utf-8', (err, data) => {
             if (err) {
                 return reject(err);
             }
@@ -46,7 +56,7 @@ const readFile = filePath =>
 
 const writeFile = (filePath, data) =>
     new Promise((resolve, reject) => {
-        fs.writeFile(filePath, JSON.stringify(data, null, 4), err => {
+        _writeFile(filePath, JSON.stringify(data, null, 4), err => {
             if (err) {
                 return reject(err);
             }
@@ -54,9 +64,12 @@ const writeFile = (filePath, data) =>
         });
     });
 
-exports.deleteUser = async (req, res) => {
-    const { userId } = req.params;
-    const userIdInt = parseInt(userId, 10);
+export async function deleteUser(req, res) {
+    const userIdInt = parseInt(req.session.userId, 10);
+
+    if (!userIdInt) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
 
     try {
         // 유저 삭제
@@ -108,17 +121,25 @@ exports.deleteUser = async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
     }
-};
+}
 
-exports.updateUser = (req, res) => {
-    const { userId } = req.params;
-    const { nickname, profile_image } = req.body;
+export function updateUser(req, res) {
+    const { nickname } = req.body;
+    let profile_image;
+
+    if (req.file) {
+        profile_image = req.file.path;
+    }
+
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
 
     if (!nickname && !profile_image) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    _readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 실패' });
         }
@@ -126,7 +147,7 @@ exports.updateUser = (req, res) => {
         const users = JSON.parse(data);
 
         const userIndex = users.findIndex(
-            item => item.user_id === parseInt(userId, 10),
+            item => item.user_id === parseInt(req.session.userId, 10),
         );
 
         if (userIndex === -1) {
@@ -137,28 +158,38 @@ exports.updateUser = (req, res) => {
             users[userIndex].nickname = nickname;
         }
         if (profile_image) {
-            users[userIndex].profile_image = profile_image;
+            users[userIndex].profile_image =
+                'http://localhost:3000/' + profile_image;
         }
 
-        fs.writeFile(filePath, JSON.stringify(users, null, 4), err => {
+        _writeFile(filePath, JSON.stringify(users, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
-            return res.status(200).json({ message: '유저 정보 업데이트 완료' });
+            return res.status(200).json({
+                message: '유저 정보 업데이트 완료',
+                img:
+                    profile_image !== undefined
+                        ? 'http://localhost:3000/' + profile_image
+                        : undefined,
+            });
         });
     });
-};
+}
 
-exports.updatePW = (req, res) => {
-    const { userId } = req.params;
+export function updatePW(req, res) {
     const { password } = req.body;
+
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
 
     if (!password) {
         return res.status(500).json({ message: '필수 요소 안보냄' });
     }
 
-    fs.readFile(filePath, 'utf-8', async (err, data) => {
+    _readFile(filePath, 'utf-8', async (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -166,16 +197,16 @@ exports.updatePW = (req, res) => {
         const users = JSON.parse(data);
 
         const userIndex = users.findIndex(
-            item => item.user_id === parseInt(userId, 10),
+            item => item.user_id === parseInt(req.session.userId, 10),
         );
 
         if (userIndex === -1) {
             return res.status(404).json({ message: '유저 정보 찾을 수 없음' });
         }
 
-        users[userIndex].password = await bcrypt.hash(password, 10);
+        users[userIndex].password = await hash(password, 10);
 
-        fs.writeFile(filePath, JSON.stringify(users, null, 4), err => {
+        _writeFile(filePath, JSON.stringify(users, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
@@ -183,4 +214,14 @@ exports.updatePW = (req, res) => {
             return res.status(200).json({ message: '비밀번호 수정' });
         });
     });
-};
+}
+
+export function logout(req, res) {
+    req.session.destroy(err => {
+        if (err) {
+            console.error('Session destroy error:', err);
+        }
+
+        res.status(200).send({ message: '로그아웃 성공' });
+    });
+}

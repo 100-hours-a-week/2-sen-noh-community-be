@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
 
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const postRoutes = require('./routes/postRoutes');
-const commentRoutes = require('./routes/commentRoutes');
-const middlewareRoutes = require('./routes/middlewareRoutes');
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import postRoutes from './routes/postRoutes.js';
+import commentRoutes from './routes/commentRoutes.js';
+import middlewareRoutes from './routes/middlewareRoutes.js';
 
 const app = express();
 
@@ -22,6 +22,8 @@ app.use('/posts/:postId/comments', (req, res, next) => {
     next();
 });
 app.use('/posts/:postId/comments', commentRoutes);
+
+app.use('/uploads', express.static('uploads'));
 
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);

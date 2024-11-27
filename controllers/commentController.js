@@ -1,14 +1,17 @@
-const fs = require('fs');
-const path = require('path');
+import { readFile, writeFile } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const filePath = path.join(__dirname, '../data/comments.json');
-const userFilePath = path.join(__dirname, '../data/users.json');
-const postFilePath = path.join(__dirname, '../data/posts.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const filePath = join(__dirname, '../data/comments.json');
+const userFilePath = join(__dirname, '../data/users.json');
+const postFilePath = join(__dirname, '../data/posts.json');
 
-exports.getComment = (req, res) => {
+export function getComment(req, res) {
     const { postId } = req;
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             res.status(500).json({ message: '파일 오류' });
             return;
@@ -16,7 +19,7 @@ exports.getComment = (req, res) => {
 
         const comments = JSON.parse(data);
 
-        fs.readFile(userFilePath, 'utf-8', (err, data) => {
+        readFile(userFilePath, 'utf-8', (err, data) => {
             if (err) {
                 res.status(500).json({ message: '파일 오류' });
                 return;
@@ -45,17 +48,21 @@ exports.getComment = (req, res) => {
             });
         });
     });
-};
+}
 
-exports.addComment = (req, res) => {
+export function addComment(req, res) {
     const { postId } = req;
-    const { user_id, comment } = req.body;
+    const { comment } = req.body;
 
-    if (!user_id || !comment) {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    if (!comment) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -68,19 +75,19 @@ exports.addComment = (req, res) => {
                     ? comments[comments.length - 1].comment_id + 1
                     : 0,
             post_id: parseInt(postId, 10),
-            user_id: user_id,
+            user_id: req.session.userId,
             date: new Date().toISOString(),
             comment,
         };
 
         comments.push(newComment);
 
-        fs.writeFile(filePath, JSON.stringify(comments, null, 4), err => {
+        writeFile(filePath, JSON.stringify(comments, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
-            fs.readFile(postFilePath, 'utf-8', (err, data) => {
+            readFile(postFilePath, 'utf-8', (err, data) => {
                 if (err) {
                     console.error(err);
                 }
@@ -93,15 +100,11 @@ exports.addComment = (req, res) => {
 
                 post.comment_cnt += 1;
 
-                fs.writeFile(
-                    postFilePath,
-                    JSON.stringify(posts, null, 4),
-                    err => {
-                        if (err) {
-                            console.error(err);
-                        }
-                    },
-                );
+                writeFile(postFilePath, JSON.stringify(posts, null, 4), err => {
+                    if (err) {
+                        console.error(err);
+                    }
+                });
             });
 
             res.status(201).json({
@@ -109,19 +112,23 @@ exports.addComment = (req, res) => {
             });
         });
     });
-};
+}
 
 // TODO - 게시글 id가 올바른 지 확인
-exports.updateComment = (req, res) => {
+export function updateComment(req, res) {
     // const { postId } = req;
     const { commentId } = req.params;
-    const { user_id, comment } = req.body;
+    const { comment } = req.body;
 
-    if (!user_id || !comment) {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
+
+    if (!comment) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -136,14 +143,14 @@ exports.updateComment = (req, res) => {
             return res.status(404).json({ message: '댓글을 찾을 수 없음' });
         }
 
-        if (editCmt.user_id !== user_id) {
+        if (editCmt.user_id !== req.session.userId) {
             return res.status(401).json({ message: '접근 권한 없음둥' });
         }
 
         editCmt.comment = comment;
         editCmt.date = new Date().toISOString();
 
-        fs.writeFile(filePath, JSON.stringify(comments, null, 4), err => {
+        writeFile(filePath, JSON.stringify(comments, null, 4), err => {
             if (err) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
@@ -151,17 +158,16 @@ exports.updateComment = (req, res) => {
             res.status(200).json({ message: '댓글 수정 완' });
         });
     });
-};
+}
 
-exports.deleteComment = (req, res) => {
+export function deleteComment(req, res) {
     const { commentId } = req.params;
-    const { user_id } = req.body;
 
-    if (!user_id) {
-        return res.status(400).json({ message: '필수 요소 안보냄' });
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
     }
 
-    fs.readFile(filePath, 'utf-8', (err, data) => {
+    readFile(filePath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ message: '파일 읽기 오류' });
         }
@@ -176,11 +182,11 @@ exports.deleteComment = (req, res) => {
             return res.status(404).json({ message: '댓글을 찾을 수 없음' });
         }
 
-        if (comments[editCmtIndex].user_id !== user_id) {
+        if (comments[editCmtIndex].user_id !== req.session.userId) {
             return res.status(401).json({ message: '삭제 권한 없음' });
         }
 
-        fs.readFile(postFilePath, 'utf-8', (err, data) => {
+        readFile(postFilePath, 'utf-8', (err, data) => {
             if (err) {
                 console.error(err);
             }
@@ -197,27 +203,23 @@ exports.deleteComment = (req, res) => {
 
             post.comment_cnt -= 1;
 
-            fs.writeFile(postFilePath, JSON.stringify(posts, null, 4), err => {
+            writeFile(postFilePath, JSON.stringify(posts, null, 4), err => {
                 if (err) {
                     console.error(err);
                 }
 
                 comments.splice(editCmtIndex, 1);
 
-                fs.writeFile(
-                    filePath,
-                    JSON.stringify(comments, null, 4),
-                    err => {
-                        if (err) {
-                            return res
-                                .status(500)
-                                .json({ message: '파일 쓰기 오류' });
-                        }
+                writeFile(filePath, JSON.stringify(comments, null, 4), err => {
+                    if (err) {
+                        return res
+                            .status(500)
+                            .json({ message: '파일 쓰기 오류' });
+                    }
 
-                        res.status(200).json({ message: '댓글 삭제 완' });
-                    },
-                );
+                    res.status(200).json({ message: '댓글 삭제 완' });
+                });
             });
         });
     });
-};
+}

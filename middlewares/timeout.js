@@ -1,12 +1,7 @@
-const timeout = require('connect-timeout');
+import timeout from 'connect-timeout';
 
-const timeoutMiddleware = timeout('5s');
+export const timeoutMiddleware = timeout('5s');
 
-const timeoutHandler = (req, res, next) => {
+export const timeoutHandler = (req, res, next) => {
     if (!req.timedout) next();
-};
-
-module.exports = {
-    timeoutMiddleware,
-    timeoutHandler,
 };
