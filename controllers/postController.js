@@ -193,7 +193,12 @@ export function addPost(req, res) {
 
 export function updatePost(req, res) {
     const { postId } = req.params;
-    const { title, content, contentImage } = req.body;
+    const { title, content } = req.body;
+    let post_image;
+
+    if (req.file) {
+        post_image = req.file.path;
+    }
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
@@ -226,8 +231,8 @@ export function updatePost(req, res) {
             posts[postIndex].content = content;
         }
 
-        if (contentImage) {
-            posts[postIndex].content_image = contentImage;
+        if (post_image) {
+            posts[postIndex].post_image = 'http://localhost:3000/' + post_image;
         }
 
         writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
@@ -251,6 +256,7 @@ const readFile = filePath =>
         });
     });
 
+//업로드속 사진도 삭제하기
 export async function deletePost(req, res) {
     const { postId } = req.params;
 

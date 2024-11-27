@@ -15,7 +15,7 @@ const router = Router();
 router.get('/', getPost);
 router.get('/:postId', getDetailPost);
 router.post('/', upload.single('post_image'), addPost);
-router.patch('/:postId', updatePost);
+router.patch('/:postId', upload.single('post_image'), updatePost);
 router.delete('/:postId', deletePost);
 router.post('/:postId/like', addLike);
 router.delete('/:postId/like', deleteLike);
