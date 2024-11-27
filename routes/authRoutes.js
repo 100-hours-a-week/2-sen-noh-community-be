@@ -4,8 +4,8 @@ import {
     signIn,
     checkEmail,
     checkNickname,
-    upload,
 } from '../controllers/authController.js';
+import { upload } from '../middlewares/upload.js';
 
 const router = Router();
 

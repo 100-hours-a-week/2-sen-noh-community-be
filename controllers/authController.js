@@ -58,21 +58,13 @@ export function login(req, res) {
     });
 }
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, `${Date.now()}${ext}`);
-    },
-});
-
-export const upload = multer({ storage });
-
 export function signIn(req, res) {
     const { email, password, nickname } = req.body;
-    const profile_image = req.file.path;
+    let profile_image;
+
+    if (req.file) {
+        profile_image = req.file.path;
+    }
 
     if (!email || !password || !nickname) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
@@ -127,7 +119,7 @@ export function signIn(req, res) {
             nickname,
             profile_image:
                 profile_image !== undefined
-                    ? 'http:localhost:3000/' + profile_image
+                    ? 'http://localhost:3000/' + profile_image
                     : null,
         };
 
