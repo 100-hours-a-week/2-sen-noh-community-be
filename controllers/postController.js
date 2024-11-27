@@ -135,7 +135,12 @@ export function getDetailPost(req, res) {
 }
 
 export function addPost(req, res) {
-    const { title, content, post_image } = req.body;
+    const { title, content } = req.body;
+    let post_image;
+
+    if (req.file) {
+        post_image = req.file.path;
+    }
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
@@ -160,7 +165,10 @@ export function addPost(req, res) {
             post_id: postId,
             title,
             content,
-            post_image: post_image !== undefined ? post_image : null,
+            post_image:
+                post_image !== undefined
+                    ? 'http://localhost:3000/' + post_image
+                    : null,
             user_id: req.session.userId,
             heart_cnt: 0,
             comment_cnt: 0,
