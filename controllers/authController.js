@@ -125,7 +125,10 @@ export function signIn(req, res) {
             email,
             password: hashedPW,
             nickname,
-            profile_image: profile_image !== undefined ? profile_image : null,
+            profile_image:
+                profile_image !== undefined
+                    ? 'http:localhost:3000/' + profile_image
+                    : null,
         };
 
         users.push(newUser);
