@@ -167,7 +167,13 @@ export function updateUser(req, res) {
                 return res.status(500).json({ message: '파일 쓰기 오류' });
             }
 
-            return res.status(200).json({ message: '유저 정보 업데이트 완료' });
+            return res.status(200).json({
+                message: '유저 정보 업데이트 완료',
+                img:
+                    profile_image !== undefined
+                        ? 'http://localhost:3000/' + profile_image
+                        : undefined,
+            });
         });
     });
 }
