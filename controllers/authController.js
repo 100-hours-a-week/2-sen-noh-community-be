@@ -1,3 +1,5 @@
+import multer from 'multer';
+import path from 'path';
 import { readFile, writeFile } from 'fs';
 import { compare, hash } from 'bcrypt';
 import { join, dirname } from 'path';
@@ -56,9 +58,21 @@ export function login(req, res) {
     });
 }
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `${Date.now()}${ext}`);
+    },
+});
+
+export const upload = multer({ storage });
+
 export function signIn(req, res) {
-    console.log('hi');
-    const { email, password, nickname, profile_image } = req.body;
+    const { email, password, nickname } = req.body;
+    const profile_image = req.file.path;
 
     if (!email || !password || !nickname) {
         return res.status(400).json({ message: '필수 요소 안보냄' });

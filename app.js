@@ -23,6 +23,8 @@ app.use('/posts/:postId/comments', (req, res, next) => {
 });
 app.use('/posts/:postId/comments', commentRoutes);
 
+app.use('/uploads', express.static('uploads'));
+
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);
 });
