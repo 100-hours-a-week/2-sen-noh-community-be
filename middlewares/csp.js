@@ -1,15 +1,16 @@
-import { contentSecurityPolicy } from 'helmet';
+import helmet from 'helmet';
 
-export const cspMiddleware = contentSecurityPolicy({
-    directives: {
-        defaultSrc: ["'self'"],
-        // 외부 CDN 사용하면 해당 도메인 추가
-        scriptSrc: ["'self"],
-        // 외부 폰트 같은 거 사용할 때는 해당 도메인 추가
-        styleSrc: ["'self"],
-        imgSrc: ["'self"],
-        connectSrc: ["'self"],
-        frameSrc: ["'none"],
-        objectSrc: ["'none"],
+export const helmetMiddleware = helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"], // 외부 스크립트 도메인 추가 가능
+            styleSrc: ["'self'"], // 외부 스타일시트 도메인 추가 가능
+            imgSrc: ["'self'", 'http://localhost:3000'], // 이미지 로드 허용 도메인
+            connectSrc: ["'self'"],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+        },
     },
+    crossOriginResourcePolicy: { policy: 'same-site' },
 });
