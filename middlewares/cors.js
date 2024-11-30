@@ -6,5 +6,3 @@ export const corsMiddleware = cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 });
-
-export const corsM = cors();

@@ -65,16 +65,16 @@ const writeFile = (filePath, data) =>
     });
 
 export async function deleteUser(req, res) {
-    const userIdInt = parseInt(req.session.userId, 10);
-
-    if (!userIdInt) {
+    if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
     }
+
+    const userId = req.session.userId;
 
     try {
         // 유저 삭제
         const users = await readFile(filePath);
-        const userIndex = users.findIndex(user => user.user_id === userIdInt);
+        const userIndex = users.findIndex(user => user.user_id === userId);
         if (userIndex === -1) {
             return res
                 .status(404)
@@ -85,35 +85,30 @@ export async function deleteUser(req, res) {
 
         // 해당 유저의 좋아요 삭제
         const likes = await readFile(likeFilePath);
-        const filteredLikes = likes.filter(like => like.user_id !== userIdInt);
+        const filteredLikes = likes.filter(like => like.user_id !== userId);
 
         await writeFile(likeFilePath, filteredLikes);
 
         // 해당 유저의 댓글 삭제
         const comments = await readFile(commentFilePath);
-        const filteredComments = comments.filter(
-            cmt => cmt.user_id !== userIdInt,
-        );
+        const filteredComments = comments.filter(cmt => cmt.user_id !== userId);
         await writeFile(commentFilePath, filteredComments);
 
         // 해당 유저의 게시글 삭제
         const posts = await readFile(postFilePath);
         posts.forEach(post => {
             likes.forEach(like => {
-                if (
-                    like.user_id === userIdInt &&
-                    post.post_id === like.post_id
-                ) {
+                if (like.user_id === userId && post.post_id === like.post_id) {
                     post.heart_cnt -= 1;
                 }
             });
             comments.forEach(cmt => {
-                if (cmt.user_id == userIdInt && post.post_id === cmt.post_id) {
+                if (cmt.user_id == userId && post.post_id === cmt.post_id) {
                     post.comment_cnt -= 1;
                 }
             });
         });
-        const filteredPosts = posts.filter(post => post.user_id !== userIdInt);
+        const filteredPosts = posts.filter(post => post.user_id !== userId);
         await writeFile(postFilePath, filteredPosts);
 
         return res.status(200).json({ message: '회원탈퇴 완료' });
