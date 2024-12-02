@@ -4,7 +4,7 @@ import {
     checkDupNickname,
     createUser,
     loginUser,
-} from '../model/userModel.js';
+} from '../model/authModel.js';
 
 export async function login(req, res) {
     const { email, password } = req.body;
