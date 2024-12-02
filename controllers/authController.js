@@ -1,18 +1,10 @@
-import { readFile, writeFile } from 'fs';
-import { compare, hash } from 'bcrypt';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { hash } from 'bcrypt';
 import {
     checkDupEmail,
     checkDupNickname,
     createUser,
     loginUser,
 } from '../model/userModel.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const filePath = join(__dirname, '../data/users.json');
 
 export async function login(req, res) {
     const { email, password } = req.body;
@@ -113,46 +105,26 @@ export async function signIn(req, res) {
     }
 }
 
-export function checkEmail(req, res) {
+export async function checkEmail(req, res) {
     const { email } = req.body;
 
     if (!email) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 쓰기 오류' });
-        }
+    const is_existed = await checkDupEmail(email);
 
-        const users = JSON.parse(data);
-
-        const isDup = users.some(item => item.email === email);
-
-        return res
-            .status(200)
-            .json({ message: '중복 여부', data: { is_existed: isDup } });
-    });
+    return res.status(200).json({ message: '중복 여부', data: { is_existed } });
 }
 
-export function checkNickname(req, res) {
+export async function checkNickname(req, res) {
     const { nickname } = req.body;
 
     if (!nickname) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 쓰기 오류' });
-        }
+    const is_existed = await checkDupNickname(nickname);
 
-        const users = JSON.parse(data);
-
-        const isDup = users.some(item => item.nickname === nickname);
-
-        return res
-            .status(200)
-            .json({ message: '중복 여부', data: { is_existed: isDup } });
-    });
+    return res.status(200).json({ message: '중복 여부', data: { is_existed } });
 }
