@@ -1,9 +1,12 @@
-import multer from 'multer';
-import path from 'path';
 import { readFile, writeFile } from 'fs';
 import { compare, hash } from 'bcrypt';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import {
+    checkDupEmail,
+    checkDupNickname,
+    createUser,
+} from '../model/userModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -58,83 +61,77 @@ export function login(req, res) {
     });
 }
 
-export function signIn(req, res) {
-    const { email, password, nickname } = req.body;
-    let profile_image;
+const validateEmail = email => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+};
 
-    if (req.file) {
-        profile_image = req.file.path;
-    }
+const validatePassword = password => {
+    const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,20}$/;
+    return passwordRegex.test(password);
+};
+
+const validateNickname = nickname => {
+    const nicknameRegex = /^[^\s]{1,10}$/;
+    return nicknameRegex.test(nickname);
+};
+
+export async function signIn(req, res) {
+    const { email, password, nickname } = req.body;
+    const profile_image = req.file
+        ? `http://localhost:3000/${req.file.path}`
+        : null;
 
     if (!email || !password || !nickname) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
     }
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-    if (!emailRegex.test(email)) {
-        return res
-            .status(400)
-            .json({ message: '유효하지 않은 이메일 형식입니다.' });
-    }
-
-    const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,20}$/;
-    if (!passwordRegex.test(password)) {
-        return res.status(400).json({
-            message:
-                '비밀번호는 8자 이상 20자 이하로, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개씩 포함해야 합니다.',
-        });
-    }
-
-    const nicknameRegex = /^[^\s]{1,10}$/;
-    if (!nicknameRegex.test(nickname)) {
-        return res.status(400).json({
-            message: '닉네임은 공백 없이 1자 이상 10자 이내여야 합니다.',
-        });
-    }
-
-    readFile(filePath, 'utf-8', async (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 오류' });
+    try {
+        if (!validateEmail(email)) {
+            return res
+                .status(400)
+                .json({ message: '유효하지 않은 이메일 형식입니다.' });
         }
 
-        const users = JSON.parse(data);
-
-        if (
-            users.some(
-                item => item.email === email || item.nickname === nickname,
-            )
-        ) {
+        if (!validatePassword(password)) {
             return res.status(400).json({
-                message: '중복 에러',
+                message:
+                    '비밀번호는 8자 이상 20자 이하로, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개씩 포함해야 합니다.',
             });
         }
 
+        if (!validateNickname(nickname)) {
+            return res.status(400).json({
+                message: '닉네임은 공백 없이 1자 이상 10자 이내여야 합니다.',
+            });
+        }
+
+        if (await checkDupEmail(email)) {
+            return res
+                .status(400)
+                .json({ message: '중복되는 이메일 입니다. ' });
+        }
+
+        if (await checkDupNickname(nickname)) {
+            return res.status(400).json({ message: '중복되는 닉네임입니다.' });
+        }
+
         const hashedPW = await hash(password, 10);
-        const newUser = {
-            user_id: users.length > 0 ? users[users.length - 1].user_id + 1 : 1,
+
+        const newUserId = await createUser({
             email,
             password: hashedPW,
             nickname,
-            profile_image:
-                profile_image !== undefined
-                    ? 'http://localhost:3000/' + profile_image
-                    : null,
-        };
-
-        users.push(newUser);
-
-        writeFile(filePath, JSON.stringify(users, null, 4), err => {
-            if (err) {
-                return res.status(500).json({ message: '파일 쓰기 오류' });
-            }
-
-            return res
-                .status(201)
-                .json({ message: '회원가입 완료', user_id: newUser.user_id });
+            profile_image,
         });
-    });
+
+        return res
+            .status(201)
+            .json({ message: '회원가입 완료', user_id: newUserId });
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
 }
 
 export function checkEmail(req, res) {
