@@ -6,6 +6,7 @@ import {
     checkDupEmail,
     checkDupNickname,
     createUser,
+    loginUser,
 } from '../model/userModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,51 +14,29 @@ const __dirname = dirname(__filename);
 
 const filePath = join(__dirname, '../data/users.json');
 
-export function login(req, res) {
+export async function login(req, res) {
     const { email, password } = req.body;
 
     if (!email || !password) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    readFile(filePath, 'utf-8', async (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 오류' });
-        }
+    const user = await loginUser({ email, password });
 
-        const users = JSON.parse(data);
+    if (!user) {
+        return res
+            .status(400)
+            .json({ message: '아이디와 패스워드가 일치하지 않습니다.' });
+    }
 
-        const getUser = async (email, password) => {
-            for (let item of users) {
-                if (
-                    item.email === email &&
-                    (await compare(password, item.password))
-                ) {
-                    return item;
-                }
-            }
-            return null;
-        };
+    req.session.userId = user.user_id;
 
-        const user = await getUser(email, password);
-
-        if (!user) {
-            return res
-                .status(400)
-                .json({ message: '아이디와 패스워드가 일치하지 않습니다.' });
-        }
-
-        req.session.userId = user.user_id;
-
-        return res.status(201).json({
-            message: '로그인 완료',
-            data: {
-                user_id: user.user_id,
-                email: user.email,
-                nickname: user.nickname,
-                profile_image: user.profile_image,
-            },
-        });
+    return res.status(200).json({
+        message: '로그인 완료',
+        data: {
+            user_id: user.user_id,
+            profile_image: user.profile_image,
+        },
     });
 }
 

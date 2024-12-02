@@ -1,11 +1,15 @@
+import { compare } from 'bcrypt';
 import pool from '../db.js';
 
-export const getUser = async user_id => {
+export const loginUser = async ({ email, password }) => {
     try {
-        const [rows] = await pool.query(
-            `SELECT * FROM user WHERE user_id == ${user_id}`,
-        );
-        return rows;
+        const [rows] = await pool.query('SELECT * FROM user WHERE email = ?', [
+            email,
+        ]);
+        if (rows.length === 0 || !(await compare(password, rows[0].password))) {
+            return null;
+        }
+        return rows[0];
     } catch (error) {
         throw error;
     }
