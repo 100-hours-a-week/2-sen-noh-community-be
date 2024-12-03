@@ -3,7 +3,7 @@ import { hash } from 'bcrypt';
 
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { getUserInfo, updateUserInfo } from '../model/userModel.js';
+import { getUserInfo, updateRePW, updateUserInfo } from '../model/userModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,20 +17,26 @@ export async function getUser(req, res) {
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
     }
+    try {
+        const user = await getUserInfo(req.session.userId);
 
-    const user = await getUserInfo(req.session.userId);
+        if (!user) {
+            return res
+                .status(404)
+                .json({ message: '찾을 수 없는 유저입니다.' });
+        }
 
-    if (!user) {
-        return res.status(404).json({ message: '찾을 수 없는 유저입니다.' });
+        return res.status(200).json({
+            message: '유저 정보',
+            data: {
+                email: user.email,
+                nickname: user.nickname,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
     }
-
-    return res.status(200).json({
-        message: '유저 정보',
-        data: {
-            email: user.email,
-            nickname: user.nickname,
-        },
-    });
 }
 
 const readFile = filePath =>
@@ -138,7 +144,7 @@ export async function updateUser(req, res) {
     }
 }
 
-export function updatePW(req, res) {
+export async function updatePW(req, res) {
     const { password } = req.body;
 
     if (!req.session.userId) {
@@ -146,34 +152,17 @@ export function updatePW(req, res) {
     }
 
     if (!password) {
-        return res.status(500).json({ message: '필수 요소 안보냄' });
+        return res.status(400).json({ message: '필수 요소 안보냄' });
     }
 
-    _readFile(filePath, 'utf-8', async (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 오류' });
-        }
+    try {
+        await updateRePW(await hash(password, 10), req.session.userId);
 
-        const users = JSON.parse(data);
-
-        const userIndex = users.findIndex(
-            item => item.user_id === parseInt(req.session.userId, 10),
-        );
-
-        if (userIndex === -1) {
-            return res.status(404).json({ message: '유저 정보 찾을 수 없음' });
-        }
-
-        users[userIndex].password = await hash(password, 10);
-
-        _writeFile(filePath, JSON.stringify(users, null, 4), err => {
-            if (err) {
-                return res.status(500).json({ message: '파일 쓰기 오류' });
-            }
-
-            return res.status(200).json({ message: '비밀번호 수정' });
-        });
-    });
+        return res.status(200).json({ message: '비밀번호 수정' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
 export function logout(req, res) {

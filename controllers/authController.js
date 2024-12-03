@@ -12,24 +12,28 @@ export async function login(req, res) {
     if (!email || !password) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
+    try {
+        const user = await loginUser({ email, password });
 
-    const user = await loginUser({ email, password });
+        if (!user) {
+            return res
+                .status(400)
+                .json({ message: '아이디와 패스워드가 일치하지 않습니다.' });
+        }
 
-    if (!user) {
-        return res
-            .status(400)
-            .json({ message: '아이디와 패스워드가 일치하지 않습니다.' });
+        req.session.userId = user.user_id;
+
+        return res.status(200).json({
+            message: '로그인 완료',
+            data: {
+                user_id: user.user_id,
+                profile_image: user.profile_image,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
     }
-
-    req.session.userId = user.user_id;
-
-    return res.status(200).json({
-        message: '로그인 완료',
-        data: {
-            user_id: user.user_id,
-            profile_image: user.profile_image,
-        },
-    });
 }
 
 const validateEmail = email => {
@@ -111,10 +115,16 @@ export async function checkEmail(req, res) {
     if (!email) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
+    try {
+        const is_existed = await checkDupEmail(email);
 
-    const is_existed = await checkDupEmail(email);
-
-    return res.status(200).json({ message: '중복 여부', data: { is_existed } });
+        return res
+            .status(200)
+            .json({ message: '중복 여부', data: { is_existed } });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
 export async function checkNickname(req, res) {
@@ -124,7 +134,14 @@ export async function checkNickname(req, res) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
 
-    const is_existed = await checkDupNickname(nickname);
+    try {
+        const is_existed = await checkDupNickname(nickname);
 
-    return res.status(200).json({ message: '중복 여부', data: { is_existed } });
+        return res
+            .status(200)
+            .json({ message: '중복 여부', data: { is_existed } });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
