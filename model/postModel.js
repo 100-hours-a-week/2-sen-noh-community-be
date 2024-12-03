@@ -47,3 +47,35 @@ export const addVisitCnt = async post_id => {
         [post_id],
     );
 };
+
+export const insertPost = async ({ title, content, post_image, user_id }) => {
+    const [result] = await pool.query(
+        'INSERT INTO post (title, content, post_image, user_id, heart_cnt, comment_cnt, visit_cnt, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [title, content, post_image, user_id, 0, 0, 0, new Date()],
+    );
+
+    return result.insertId;
+};
+
+export const updatePost = async (updateData, user_id, post_id) => {
+    const updates = [];
+    const values = [];
+
+    Object.keys(updateData).forEach(key => {
+        const value = updateData[key];
+
+        if (value) {
+            updates.push(`${key} = ?`);
+            values.push(value);
+        }
+    });
+
+    values.push(user_id, post_id);
+
+    const [result] = await pool.query(
+        `UPDATE post SET ${updates.join(', ')} WHERE user_id = ? AND post_id = ?`,
+        values,
+    );
+
+    return result.affectedRows;
+};

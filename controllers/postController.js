@@ -5,9 +5,12 @@ import {
     addVisitCnt,
     countPosts,
     findLikePost,
+    insertPost,
     selectAllPost,
     selectPost,
+    updatePost,
 } from '../model/postModel.js';
+import session from 'express-session';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -85,13 +88,11 @@ export async function getDetailPost(req, res) {
     }
 }
 
-export function addPost(req, res) {
+export async function addPost(req, res) {
     const { title, content } = req.body;
-    let post_image;
-
-    if (req.file) {
-        post_image = req.file.path;
-    }
+    const post_image = req.file
+        ? `http://localhost:3000/${req.file.path}`
+        : null;
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
@@ -101,98 +102,58 @@ export function addPost(req, res) {
         return res.status(400).json({ message: '필수안보냄' });
     }
 
-    _readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 오류' });
-        }
-
-        const posts = JSON.parse(data);
-
-        const postId =
-            posts.length > 0 ? posts[posts.length - 1].post_id + 1 : 0;
-        const newPost = {
-            post_id: postId,
+    try {
+        const postId = await insertPost({
             title,
             content,
-            post_image:
-                post_image !== undefined
-                    ? 'http://localhost:3000/' + post_image
-                    : null,
+            post_image,
             user_id: req.session.userId,
-            heart_cnt: 0,
-            comment_cnt: 0,
-            visit_cnt: 0,
-            date: new Date().toISOString(),
-        };
-
-        posts.push(newPost);
-
-        writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
-            if (err) {
-                return res.status(500).json({ message: '파일 저장 오류' });
-            }
-
-            res.status(201).json({
-                message: '새 게시글 추가 완',
-                postId: postId,
-            });
         });
-    });
+
+        res.status(201).json({
+            message: '새 게시글 추가 완',
+            postId: postId,
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
-export function updatePost(req, res) {
+export async function editPost(req, res) {
     const { postId } = req.params;
     const { title, content } = req.body;
-    let post_image;
-
-    if (req.file) {
-        post_image = req.file.path;
-    }
+    const post_image = req.file
+        ? `http://localhost:3000/${req.file.path}`
+        : null;
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
     }
 
-    _readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 오류' });
-        }
+    if (!title && !content && !post_image) {
+        return res.status(400).json({ message: '아무 요소도 보내지 않음' });
+    }
 
-        const posts = JSON.parse(data);
-
-        const postIndex = posts.findIndex(
-            post => post.post_id === parseInt(postId, 10),
+    try {
+        const updatedPost = await updatePost(
+            { title, content, post_image },
+            req.session.userId,
+            postId,
         );
 
-        if (postIndex === -1) {
-            return res.status(404).json({ message: '게시글 찾을 수 없음' });
-        }
-
-        if (req.session.userId !== posts[postIndex].user_id) {
-            return res.status(401).json({ message: '수정 권한 없음' });
-        }
-
-        if (title) {
-            posts[postIndex].title = title;
-        }
-
-        if (content) {
-            posts[postIndex].content = content;
-        }
-
-        if (post_image) {
-            posts[postIndex].post_image = 'http://localhost:3000/' + post_image;
-        }
-
-        writeFile(filePath, JSON.stringify(posts, null, 4), 'utf-8', err => {
-            if (err) {
-                return res.status(500).json({ message: '파일 저장 오류' });
-            }
-            return res.status(200).json({
-                message: '게시글 수정 완료',
+        if (!updatedPost)
+            return res.status(404).json({
+                message: '사용자가 수정 할 수 있는 게시글이 없습니다.',
             });
+
+        return res.status(200).json({
+            message: '게시글 수정 완료',
         });
-    });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
 const readFile = filePath =>
