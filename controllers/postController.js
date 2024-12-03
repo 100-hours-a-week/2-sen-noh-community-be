@@ -1,6 +1,7 @@
 import { readFile as _readFile, writeFile } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { countPosts, selectAllPost } from '../model/postModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,65 +11,42 @@ const likeFilePath = join(__dirname, '../data/likes.json');
 const userFilePath = join(__dirname, '../data/users.json');
 const commentFilePath = join(__dirname, '../data/comments.json');
 
-export function getPost(req, res) {
+export async function getPost(req, res) {
     const page = parseInt(req.query.page, 10) || 1;
     const size = parseInt(req.query.size, 10) || 10;
 
-    _readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 오류' });
+    if (!page || !size) {
+        return res.status(400).json({
+            message: '필수안보냄',
+        });
+    }
+
+    try {
+        const startIndex = (page - 1) * size;
+        console.log(startIndex);
+        const totalItems = await countPosts();
+
+        if (startIndex >= totalItems) {
+            return res
+                .status(400)
+                .json({ message: '유효하지 않은 페이지 번호입니다.' });
         }
 
-        const posts = JSON.parse(data);
+        const pagedPosts = await selectAllPost(size, startIndex);
 
-        _readFile(userFilePath, 'utf-8', (err, data) => {
-            if (err) {
-                return res.status(500).json({ message: '파일 오류' });
-            }
-
-            const users = JSON.parse(data);
-
-            const simplifiedPosts = posts.reverse().map(post => {
-                const user = users.find(item => item.user_id === post.user_id);
-
-                return {
-                    post_id: post.post_id,
-                    title: post.title,
-                    user_id: post.user_id,
-                    profile_image: user ? user.profile_image : null, // 유저 정보 연결
-                    nickname: user ? user.nickname : '알 수 없음',
-                    heart_cnt: post.heart_cnt,
-                    comment_cnt: post.comment_cnt,
-                    visit_cnt: post.visit_cnt,
-                    date: post.date,
-                };
-            });
-
-            const totalItems = simplifiedPosts.length;
-            const totalPages = Math.ceil(totalItems / size);
-            const startIndex = (page - 1) * size;
-            const endIndex = startIndex + size;
-
-            if (startIndex >= totalItems) {
-                return res
-                    .status(400)
-                    .json({ message: '유효하지 않은 페이지 번호입니다.' });
-            }
-
-            const pagedPosts = simplifiedPosts.slice(startIndex, endIndex);
-
-            res.status(200).json({
-                message: '게시글 목록',
-                data: pagedPosts,
-                meta: {
-                    totalItems,
-                    totalPages,
-                    currentPage: page,
-                    perPage: size,
-                },
-            });
+        res.status(200).json({
+            message: '게시글 목록',
+            data: pagedPosts,
+            meta: {
+                totalItems,
+                currentPage: page,
+                perPage: size,
+            },
         });
-    });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
 export function getDetailPost(req, res) {
