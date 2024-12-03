@@ -1,17 +1,11 @@
-import { readFile as _readFile, writeFile as _writeFile } from 'fs';
 import { hash } from 'bcrypt';
 
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { getUserInfo, updateRePW, updateUserInfo } from '../model/userModel.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const filePath = join(__dirname, '../data/users.json');
-const commentFilePath = join(__dirname, '../data/comments.json');
-const postFilePath = join(__dirname, '../data/posts.json');
-const likeFilePath = join(__dirname, '../data/likes.json');
+import {
+    deleteUserAll,
+    getUserInfo,
+    updateRePW,
+    updateUserInfo,
+} from '../model/userModel.js';
 
 export async function getUser(req, res) {
     if (!req.session.userId) {
@@ -39,72 +33,19 @@ export async function getUser(req, res) {
     }
 }
 
-const readFile = filePath =>
-    new Promise((resolve, reject) => {
-        _readFile(filePath, 'utf-8', (err, data) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(JSON.parse(data));
-        });
-    });
-
-const writeFile = (filePath, data) =>
-    new Promise((resolve, reject) => {
-        _writeFile(filePath, JSON.stringify(data, null, 4), err => {
-            if (err) {
-                return reject(err);
-            }
-            resolve();
-        });
-    });
-
 export async function deleteUser(req, res) {
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
     }
 
-    const userId = req.session.userId;
-
     try {
-        // 유저 삭제
-        const users = await readFile(filePath);
-        const userIndex = users.findIndex(user => user.user_id === userId);
-        if (userIndex === -1) {
+        const users = await deleteUserAll(req.session.userId);
+
+        if (!users) {
             return res
                 .status(404)
                 .json({ message: '찾을 수 없는 유저입니다.' });
         }
-        users.splice(userIndex, 1);
-        await writeFile(filePath, users);
-
-        // 해당 유저의 좋아요 삭제
-        const likes = await readFile(likeFilePath);
-        const filteredLikes = likes.filter(like => like.user_id !== userId);
-
-        await writeFile(likeFilePath, filteredLikes);
-
-        // 해당 유저의 댓글 삭제
-        const comments = await readFile(commentFilePath);
-        const filteredComments = comments.filter(cmt => cmt.user_id !== userId);
-        await writeFile(commentFilePath, filteredComments);
-
-        // 해당 유저의 게시글 삭제
-        const posts = await readFile(postFilePath);
-        posts.forEach(post => {
-            likes.forEach(like => {
-                if (like.user_id === userId && post.post_id === like.post_id) {
-                    post.heart_cnt -= 1;
-                }
-            });
-            comments.forEach(cmt => {
-                if (cmt.user_id == userId && post.post_id === cmt.post_id) {
-                    post.comment_cnt -= 1;
-                }
-            });
-        });
-        const filteredPosts = posts.filter(post => post.user_id !== userId);
-        await writeFile(postFilePath, filteredPosts);
 
         return res.status(200).json({ message: '회원탈퇴 완료' });
     } catch (err) {
@@ -156,8 +97,13 @@ export async function updatePW(req, res) {
     }
 
     try {
-        await updateRePW(await hash(password, 10), req.session.userId);
-
+        const result = await updateRePW({
+            password: await hash(password, 10),
+            user_id: req.session.userId,
+        });
+        if (!result) {
+            return res.status(404).json({ message: '찾을 수 없는 유저' });
+        }
         return res.status(200).json({ message: '비밀번호 수정' });
     } catch (err) {
         console.error(err);

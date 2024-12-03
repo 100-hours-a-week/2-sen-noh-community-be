@@ -31,8 +31,16 @@ export const updateUserInfo = async ({ nickname, profile_image, user_id }) => {
 };
 
 export const updateRePW = async ({ password, user_id }) => {
-    await pool.query('UPDATE user SET password = ? WHERE user_id = ?', [
-        password,
+    const [result] = await pool.query(
+        'UPDATE user SET password = ? WHERE user_id = ?',
+        [password, user_id],
+    );
+    return result.affectedRows > 0;
+};
+
+export const deleteUserAll = async user_id => {
+    const [result] = await pool.query('DELETE FROM user WHERE user_id = ?', [
         user_id,
     ]);
+    return result.affectedRows > 0;
 };
