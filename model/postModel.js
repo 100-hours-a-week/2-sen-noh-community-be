@@ -79,3 +79,35 @@ export const updatePost = async (updateData, user_id, post_id) => {
 
     return result.affectedRows;
 };
+
+export const insertLike = async (post_id, user_id) => {
+    const [result] = await pool.query(
+        'INSERT INTO heart (post_id, user_id) VALUES (?, ?)',
+        [post_id, user_id],
+    );
+
+    return result.affectedRows > 0;
+};
+
+export const addLikeCnt = async post_id => {
+    await pool.query(
+        'UPDATE post SET heart_cnt = heart_cnt + 1 WHERE post_id = ?',
+        [post_id],
+    );
+};
+
+export const deleteLike = async (post_id, user_id) => {
+    const [result] = await pool.query(
+        'DELETE FROM heart WHERE post_id = ? AND user_id = ?',
+        [post_id, user_id],
+    );
+
+    return result.affectedRows > 0;
+};
+
+export const subLikeCnt = async post_id => {
+    await pool.query(
+        'UPDATE post SET heart_cnt = heart_cnt - 1 WHERE post_id = ?',
+        [post_id],
+    );
+};

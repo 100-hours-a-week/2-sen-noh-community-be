@@ -2,16 +2,16 @@ import { readFile as _readFile, writeFile } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import {
+    addLikeCnt,
     addVisitCnt,
     countPosts,
     findLikePost,
     insertPost,
     selectAllPost,
     selectPost,
+    subLikeCnt,
     updatePost,
 } from '../model/postModel.js';
-import session from 'express-session';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -219,133 +219,52 @@ export async function deletePost(req, res) {
     }
 }
 
-export function addLike(req, res) {
+export async function addLike(req, res) {
     const { postId } = req.params;
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
     }
 
-    _readFile(likeFilePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 열기 에러요' });
-        }
+    try {
+        const isSuccess = await insertLike(postId, req.session.userId);
 
-        const likes = JSON.parse(data);
-
-        if (
-            likes.some(
-                item =>
-                    item.user_id === req.session.userId &&
-                    item.post_id === parseInt(postId, 10),
-            )
-        ) {
+        if (!isSuccess) {
             return res
                 .status(200)
                 .json({ message: '이미 좋아요 눌렀습니다.', success: false });
         }
 
-        const newLike = {
-            user_id: req.session.userId,
-            post_id: parseInt(postId, 10),
-        };
+        await addLikeCnt(postId);
 
-        likes.push(newLike);
-
-        writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
-            if (err) {
-                return res.status(500).json({ message: '파일 쓰기 오류' });
-            }
-
-            _readFile(filePath, 'utf-8', (err, data) => {
-                if (err) {
-                    console.error(err);
-                }
-
-                const posts = JSON.parse(data);
-
-                const post = posts.find(
-                    p => p.post_id === parseInt(postId, 10),
-                );
-
-                if (!post) {
-                    return console.error(err);
-                }
-
-                post.heart_cnt += 1;
-
-                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
-                    if (err) {
-                        console.error(err);
-                    }
-                });
-            });
-
-            return res.status(201).json({ message: '좋아요', success: true });
-        });
-    });
+        return res.status(201).json({ message: '좋아요', success: true });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
-export function deleteLike(req, res) {
+export async function deleteLike(req, res) {
     const { postId } = req.params;
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '필수 요소 안줌' });
     }
 
-    _readFile(likeFilePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 열기 에러요' });
-        }
+    try {
+        const isSuccess = await deleteLike(postId, req.session.userId);
 
-        const likes = JSON.parse(data);
-
-        const likeIndex = likes.findIndex(
-            item =>
-                item.user_id === req.session.userId &&
-                item.post_id === parseInt(postId, 10),
-        );
-
-        if (likeIndex === -1) {
+        if (!isSuccess) {
             return res
                 .status(200)
-                .json({ message: '이미 좋아요 취소했습니다.', success: false });
+                .json({ message: '이미 좋아요 눌렀습니다.', success: false });
         }
 
-        likes.splice(likeIndex, 1);
+        await subLikeCnt(postId);
 
-        writeFile(likeFilePath, JSON.stringify(likes, null, 4), err => {
-            if (err) {
-                return res.status(500).json({ message: '파일 쓰기 오류' });
-            }
-
-            _readFile(filePath, 'utf-8', (err, data) => {
-                if (err) {
-                    console.error(err);
-                }
-
-                const posts = JSON.parse(data);
-
-                const post = posts.find(
-                    p => p.post_id === parseInt(postId, 10),
-                );
-
-                if (!post) {
-                    return console.error(err);
-                }
-
-                post.heart_cnt -= 1;
-
-                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
-                    if (err) {
-                        console.error(err);
-                    }
-                });
-            });
-
-            return res
-                .status(201)
-                .json({ message: '좋아요 취소', success: true });
-        });
-    });
+        return res.status(201).json({ message: '좋아요', success: true });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
