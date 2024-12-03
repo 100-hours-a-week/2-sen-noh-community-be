@@ -1,56 +1,43 @@
 import { readFile, writeFile } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import {
+    addVisitCnt,
+    insertComment,
+    selectComment,
+} from '../model/commentModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const filePath = join(__dirname, '../data/comments.json');
-const userFilePath = join(__dirname, '../data/users.json');
+
 const postFilePath = join(__dirname, '../data/posts.json');
 
-export function getComment(req, res) {
+export async function getComment(req, res) {
     const { postId } = req;
 
-    readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            res.status(500).json({ message: '파일 오류' });
-            return;
-        }
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
 
-        const comments = JSON.parse(data);
+    if (!postId) {
+        return res.status(400).json({ message: '필수 요소 안줌' });
+    }
 
-        readFile(userFilePath, 'utf-8', (err, data) => {
-            if (err) {
-                res.status(500).json({ message: '파일 오류' });
-                return;
-            }
+    try {
+        const comments = await selectComment(postId, req.session.userId);
 
-            const users = JSON.parse(data);
-
-            const comment = comments
-                .filter(c => c.post_id === parseInt(postId, 10))
-                .map(c => {
-                    const user = users.find(item => item.user_id === c.user_id);
-
-                    return {
-                        comment_id: c.comment_id,
-                        user_id: c.user_id,
-                        nickname: user.nickname,
-                        profile_image: user.profile_image,
-                        date: c.date,
-                        comment: c.comment,
-                    };
-                });
-
-            res.status(200).json({
-                message: 'ok',
-                data: comment,
-            });
+        res.status(200).json({
+            message: '댓글 조회',
+            data: comments,
         });
-    });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
-export function addComment(req, res) {
+export async function addComment(req, res) {
     const { postId } = req;
     const { comment } = req.body;
 
@@ -61,57 +48,18 @@ export function addComment(req, res) {
     if (!comment) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
+    try {
+        await insertComment(postId, req.session.userId, comment);
 
-    readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 오류' });
-        }
+        await addVisitCnt(postId);
 
-        const comments = JSON.parse(data);
-
-        const newComment = {
-            comment_id:
-                comments.length > 0
-                    ? comments[comments.length - 1].comment_id + 1
-                    : 0,
-            post_id: parseInt(postId, 10),
-            user_id: req.session.userId,
-            date: new Date().toISOString(),
-            comment,
-        };
-
-        comments.push(newComment);
-
-        writeFile(filePath, JSON.stringify(comments, null, 4), err => {
-            if (err) {
-                return res.status(500).json({ message: '파일 쓰기 오류' });
-            }
-
-            readFile(postFilePath, 'utf-8', (err, data) => {
-                if (err) {
-                    console.error(err);
-                }
-
-                const posts = JSON.parse(data);
-
-                const post = posts.find(
-                    p => p.post_id === parseInt(postId, 10),
-                );
-
-                post.comment_cnt += 1;
-
-                writeFile(postFilePath, JSON.stringify(posts, null, 4), err => {
-                    if (err) {
-                        console.error(err);
-                    }
-                });
-            });
-
-            res.status(201).json({
-                message: '새 댓글 추가 완',
-            });
+        res.status(201).json({
+            message: '새 댓글 추가 완',
         });
-    });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
 // TODO - 게시글 id가 올바른 지 확인
