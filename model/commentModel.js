@@ -8,7 +8,9 @@ export const selectComment = async (post_id, user_id) => {
                 END AS is_user
          FROM comment
          JOIN user ON comment.user_id = user.user_id
-         WHERE comment.post_id = ?`,
+         WHERE comment.post_id = ?
+         ORDER BY comment.date DESC
+         `,
         [user_id, post_id],
     );
     return rows;
@@ -21,9 +23,34 @@ export const insertComment = async (post_id, user_id, comment) => {
     );
 };
 
-export const addVisitCnt = async post_id => {
+export const addCommentCnt = async post_id => {
     await pool.query(
-        'UPDATE post SET visit_cnt = visit_cnt + 1 WHERE post_id = ?',
+        'UPDATE post SET comment_cnt = comment_cnt + 1 WHERE post_id = ?',
+        [post_id],
+    );
+};
+
+export const updateComment = async (comment, comment_id, user_id) => {
+    const [result] = await pool.query(
+        'UPDATE comment SET comment = ?, date = ? WHERE comment_id = ? AND user_id = ?',
+        [comment, new Date(), comment_id, user_id],
+    );
+
+    return result.affectedRows > 0;
+};
+
+export const deleteCommentData = async (comment_id, user_id, post_id) => {
+    const [result] = await pool.query(
+        'DELETE FROM comment WHERE comment_id = ? AND user_id = ? AND post_id = ?',
+        [comment_id, user_id, post_id],
+    );
+
+    return result.affectedRows > 0;
+};
+
+export const subCommentCnt = async post_id => {
+    await pool.query(
+        'UPDATE post SET comment_cnt = comment_cnt - 1 WHERE post_id = ?',
         [post_id],
     );
 };
