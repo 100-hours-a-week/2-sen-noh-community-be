@@ -80,7 +80,7 @@ export const updatePost = async (updateData, user_id, post_id) => {
     return result.affectedRows;
 };
 
-export const insertLike = async (post_id, user_id) => {
+export const insertHeart = async (post_id, user_id) => {
     const [result] = await pool.query(
         'INSERT INTO heart (post_id, user_id) VALUES (?, ?)',
         [post_id, user_id],
@@ -96,7 +96,7 @@ export const addLikeCnt = async post_id => {
     );
 };
 
-export const deleteLike = async (post_id, user_id) => {
+export const deleteHeart = async (post_id, user_id) => {
     const [result] = await pool.query(
         'DELETE FROM heart WHERE post_id = ? AND user_id = ?',
         [post_id, user_id],

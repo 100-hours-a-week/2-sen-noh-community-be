@@ -5,7 +5,9 @@ import {
     addLikeCnt,
     addVisitCnt,
     countPosts,
+    deleteHeart,
     findLikePost,
+    insertHeart,
     insertPost,
     selectAllPost,
     selectPost,
@@ -226,8 +228,12 @@ export async function addLike(req, res) {
         return res.status(401).json({ message: '세션 만료' });
     }
 
+    if (!postId) {
+        return res.status(400).json({ message: '아무 요소도 보내지 않음' });
+    }
+
     try {
-        const isSuccess = await insertLike(postId, req.session.userId);
+        const isSuccess = await insertHeart(postId, req.session.userId);
 
         if (!isSuccess) {
             return res
@@ -251,8 +257,12 @@ export async function deleteLike(req, res) {
         return res.status(401).json({ message: '필수 요소 안줌' });
     }
 
+    if (!postId) {
+        return res.status(400).json({ message: '아무 요소도 보내지 않음' });
+    }
+
     try {
-        const isSuccess = await deleteLike(postId, req.session.userId);
+        const isSuccess = await deleteHeart(postId, req.session.userId);
 
         if (!isSuccess) {
             return res
