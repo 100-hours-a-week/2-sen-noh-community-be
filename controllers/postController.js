@@ -1,11 +1,9 @@
-import { readFile as _readFile, writeFile } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import {
     addLikeCnt,
     addVisitCnt,
     countPosts,
     deleteHeart,
+    deletePostData,
     findLikePost,
     insertHeart,
     insertPost,
@@ -14,13 +12,6 @@ import {
     subLikeCnt,
     updatePost,
 } from '../model/postModel.js';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const filePath = join(__dirname, '../data/posts.json');
-const likeFilePath = join(__dirname, '../data/likes.json');
-const userFilePath = join(__dirname, '../data/users.json');
-const commentFilePath = join(__dirname, '../data/comments.json');
 
 export async function getPost(req, res) {
     const page = parseInt(req.query.page, 10) || 1;
@@ -158,62 +149,22 @@ export async function editPost(req, res) {
     }
 }
 
-const readFile = filePath =>
-    new Promise((resolve, reject) => {
-        _readFile(filePath, 'utf-8', (err, data) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(JSON.parse(data));
-        });
-    });
-
-//업로드속 사진도 삭제하기
+// 업로드속 사진도 삭제하기
 export async function deletePost(req, res) {
     const { postId } = req.params;
 
+    if (!req.session.userId) {
+        return res.status(401).json({ message: '세션 만료' });
+    }
     try {
-        if (!req.session.userId) {
-            return res.status(401).json({ message: '세션 만료' });
+        const delPost = await deletePostData(postId, req.session.userId);
+        if (!delPost) {
+            return res
+                .status(404)
+                .json({ message: '찾을 수 없는 사용자가 쓴 게시글' });
         }
-        const posts = await readFile(filePath);
-        const postIndex = posts.findIndex(
-            post => post.post_id === parseInt(postId, 10),
-        );
-
-        if (postIndex === -1) {
-            return res.status(404).json({ message: '찾을 수 없는 게시글' });
-        }
-
-        if (posts[postIndex].user_id !== req.session.userId) {
-            return res.status(401).json({ message: '삭제 권한 없음' });
-        }
-
-        posts.splice(postIndex, 1);
-
-        writeFile(filePath, JSON.stringify(posts, null, 4), err => {
-            if (err) {
-                return reject(err);
-            }
-        });
-
-        const comments = await readFile(commentFilePath);
-        const newCmt = comments.filter(
-            cmt => cmt.post_id !== parseInt(postId, 10),
-        );
-        writeFile(commentFilePath, JSON.stringify(newCmt, null, 4), err => {
-            if (err) {
-                return reject(err);
-            }
-        });
-
-        const likes = await readFile(likeFilePath);
-        const newLikes = likes.filter(l => l.post_id !== parseInt(postId, 10));
-        writeFile(likeFilePath, JSON.stringify(newLikes, null, 4), err => {
-            if (err) {
-                return reject(err);
-            }
-            return res.status(200).json({ message: '게시글 삭제' });
+        return res.status(200).json({
+            message: '게시글 삭제 완료',
         });
     } catch (err) {
         console.error(err);

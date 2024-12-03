@@ -111,3 +111,11 @@ export const subLikeCnt = async post_id => {
         [post_id],
     );
 };
+
+export const deletePostData = async (post_id, user_id) => {
+    const [result] = await pool.query(
+        'DELETE FROM post WHERE post_id = ? AND user_id = ?',
+        [post_id, user_id],
+    );
+    return result.affectedRows > 0;
+};
