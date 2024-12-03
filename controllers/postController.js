@@ -1,7 +1,13 @@
 import { readFile as _readFile, writeFile } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { countPosts, selectAllPost } from '../model/postModel.js';
+import {
+    addVisitCnt,
+    countPosts,
+    findLikePost,
+    selectAllPost,
+    selectPost,
+} from '../model/postModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,14 +22,12 @@ export async function getPost(req, res) {
     const size = parseInt(req.query.size, 10) || 10;
 
     if (!page || !size) {
-        return res.status(400).json({
-            message: '필수안보냄',
-        });
+        return res.status(400).json({ message: '필수안보냄' });
     }
 
     try {
         const startIndex = (page - 1) * size;
-        console.log(startIndex);
+
         const totalItems = await countPosts();
 
         if (startIndex >= totalItems) {
@@ -49,67 +53,36 @@ export async function getPost(req, res) {
     }
 }
 
-export function getDetailPost(req, res) {
+export async function getDetailPost(req, res) {
     const { postId } = req.params;
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
     }
 
-    _readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 오류' });
-        }
+    if (!postId) {
+        return res.status(400).json({ message: '필수안보냄' });
+    }
 
-        const posts = JSON.parse(data);
-        const post = posts.find(p => p.post_id === parseInt(postId, 10));
+    try {
+        const post = await selectPost(postId);
 
         if (!post) {
-            return res.status(404).json({
-                message: '게시글 없음',
-            });
+            return res.status(404).json({ message: '게시글 없음' });
         }
 
-        _readFile(likeFilePath, 'utf-8', (err, data) => {
-            if (err) {
-                return res.status(500).json({ message: '파일 오류' });
-            }
+        const is_liked = await findLikePost(postId, req.session.userId);
 
-            const likes = JSON.parse(data);
+        await addVisitCnt(postId);
 
-            post.is_liked = likes.some(
-                item =>
-                    item.user_id === req.session.userId &&
-                    item.post_id === parseInt(postId, 10),
-            );
-
-            _readFile(userFilePath, 'utf-8', (err, data) => {
-                if (err) {
-                    res.status(500).json({ message: '파일 오류' });
-                    return;
-                }
-
-                const users = JSON.parse(data);
-                const user = users.find(item => item.user_id === post.user_id);
-
-                post.nickname = user.nickname;
-                post.profile_image = user.profile_image;
-
-                post.visit_cnt += 1;
-
-                writeFile(filePath, JSON.stringify(posts, null, 4), err => {
-                    if (err) {
-                        console.error(err);
-                    }
-                });
-
-                return res.status(200).json({
-                    message: '게시글 목록',
-                    data: post,
-                });
-            });
+        return res.status(200).json({
+            message: '게시글 목록',
+            data: { ...post, is_liked },
         });
-    });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
 export function addPost(req, res) {
@@ -125,9 +98,7 @@ export function addPost(req, res) {
     }
 
     if (!title || !content) {
-        return res.status(400).json({
-            message: '필수안보냄',
-        });
+        return res.status(400).json({ message: '필수안보냄' });
     }
 
     _readFile(filePath, 'utf-8', (err, data) => {
