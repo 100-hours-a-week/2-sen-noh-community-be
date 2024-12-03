@@ -3,6 +3,7 @@ import { hash } from 'bcrypt';
 
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { getUserInfo, updateUserInfo } from '../model/userModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,35 +13,23 @@ const commentFilePath = join(__dirname, '../data/comments.json');
 const postFilePath = join(__dirname, '../data/posts.json');
 const likeFilePath = join(__dirname, '../data/likes.json');
 
-// TODO - parseint 할 필요가 있는 지 확인
-export function getUser(req, res) {
+export async function getUser(req, res) {
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
     }
 
-    _readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 오류' });
-        }
+    const user = await getUserInfo(req.session.userId);
 
-        const users = JSON.parse(data);
+    if (!user) {
+        return res.status(404).json({ message: '찾을 수 없는 유저입니다.' });
+    }
 
-        const user = users.find(
-            item => item.user_id === parseInt(req.session.userId, 10),
-        );
-
-        if (!user) {
-            return res
-                .status(404)
-                .json({ message: '찾을 수 없는 유저입니다.' });
-        }
-
-        const userInfo = {
+    return res.status(200).json({
+        message: '유저 정보',
+        data: {
             email: user.email,
             nickname: user.nickname,
-        };
-
-        return res.status(200).json({ message: '유저 정보', data: userInfo });
+        },
     });
 }
 
@@ -118,13 +107,11 @@ export async function deleteUser(req, res) {
     }
 }
 
-export function updateUser(req, res) {
+export async function updateUser(req, res) {
     const { nickname } = req.body;
-    let profile_image;
-
-    if (req.file) {
-        profile_image = req.file.path;
-    }
+    const profile_image = req.file
+        ? `http://localhost:3000/${req.file.path}`
+        : null;
 
     if (!req.session.userId) {
         return res.status(401).json({ message: '세션 만료' });
@@ -134,43 +121,21 @@ export function updateUser(req, res) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });
     }
 
-    _readFile(filePath, 'utf-8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ message: '파일 읽기 실패' });
-        }
-
-        const users = JSON.parse(data);
-
-        const userIndex = users.findIndex(
-            item => item.user_id === parseInt(req.session.userId, 10),
-        );
-
-        if (userIndex === -1) {
-            return res.status(404).json({ message: '없는 유저 입니다' });
-        }
-
-        if (nickname) {
-            users[userIndex].nickname = nickname;
-        }
-        if (profile_image) {
-            users[userIndex].profile_image =
-                'http://localhost:3000/' + profile_image;
-        }
-
-        _writeFile(filePath, JSON.stringify(users, null, 4), err => {
-            if (err) {
-                return res.status(500).json({ message: '파일 쓰기 오류' });
-            }
-
-            return res.status(200).json({
-                message: '유저 정보 업데이트 완료',
-                img:
-                    profile_image !== undefined
-                        ? 'http://localhost:3000/' + profile_image
-                        : undefined,
-            });
+    try {
+        await updateUserInfo({
+            nickname,
+            profile_image,
+            user_id: req.session.userId,
         });
-    });
+
+        return res.status(200).json({
+            message: '유저 정보 업데이트 완료',
+            img: profile_image,
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
 }
 
 export function updatePW(req, res) {
