@@ -1,11 +1,8 @@
+import { selectComment, updateComment } from '../models/commentModel.js';
 import {
-    addCommentCnt,
-    deleteCommentData,
-    insertComment,
-    selectComment,
-    subCommentCnt,
-    updateComment,
-} from '../model/commentModel.js';
+    deleteCmtTransaction,
+    insertCmtTransaction,
+} from '../services/commentService.js';
 
 export async function getComment(req, res) {
     const { postId } = req;
@@ -42,10 +39,13 @@ export async function addComment(req, res) {
     if (!comment) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
-    try {
-        await insertComment(postId, req.session.userId, comment);
 
-        await addCommentCnt(postId);
+    try {
+        await insertCmtTransaction({
+            post_id: postId,
+            user_id: req.session.userId,
+            comment,
+        });
 
         res.status(201).json({
             message: '새 댓글 추가 완',
@@ -99,19 +99,11 @@ export async function deleteComment(req, res) {
     }
 
     try {
-        const deleteCmt = await deleteCommentData(
-            commentId,
-            req.session.userId,
-            postId,
-        );
-
-        if (!deleteCmt) {
-            return res
-                .status(404)
-                .json({ message: '사용자가 쓴 댓글을 찾을 수 없음' });
-        }
-
-        await subCommentCnt(postId);
+        await deleteCmtTransaction({
+            comment_id: commentId,
+            user_id: req.session.userId,
+            post_id: postId,
+        });
 
         res.status(200).json({ message: '댓글 삭제 완' });
     } catch (err) {

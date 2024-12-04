@@ -11,7 +11,7 @@ import {
     selectPost,
     subLikeCnt,
     updatePost,
-} from '../model/postModel.js';
+} from '../models/postModel.js';
 
 export async function getPost(req, res) {
     const page = parseInt(req.query.page, 10) || 1;

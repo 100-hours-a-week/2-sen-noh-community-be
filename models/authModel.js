@@ -11,28 +11,27 @@ export const loginUser = async ({ email, password }) => {
     return rows[0];
 };
 
-export const createUser = async ({
-    email,
-    password,
-    nickname,
-    profile_image,
-}) => {
-    const [result] = await pool.query(
+export const createUser = async (
+    { email, password, nickname, profile_image },
+    connection,
+) => {
+    const [result] = await connection.query(
         'INSERT INTO user (email,password,nickname,profile_image) VALUES (?, ?,?,?)',
         [email, password, nickname, profile_image],
     );
     return result.insertId;
 };
 
-export const checkDupEmail = async email => {
-    const [rows] = await pool.query('SELECT email FROM user WHERE email = ?', [
-        email,
-    ]);
+export const checkDupEmail = async (email, connection = null) => {
+    const [rows] = await (connection || pool).query(
+        'SELECT email FROM user WHERE email = ?',
+        [email],
+    );
     return rows.length > 0;
 };
 
-export const checkDupNickname = async nickname => {
-    const [rows] = await pool.query(
+export const checkDupNickname = async (nickname, connection = null) => {
+    const [rows] = await (connection || pool).query(
         'SELECT nickname FROM user WHERE nickname = ?',
         [nickname],
     );

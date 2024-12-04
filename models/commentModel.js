@@ -16,15 +16,15 @@ export const selectComment = async (post_id, user_id) => {
     return rows;
 };
 
-export const insertComment = async (post_id, user_id, comment) => {
-    await pool.query(
+export const insertComment = async (post_id, user_id, comment, connection) => {
+    await connection.query(
         'INSERT INTO comment (post_id, user_id, comment, date) VALUES (?, ?, ?, ?)',
         [post_id, user_id, comment, new Date()],
     );
 };
 
-export const addCommentCnt = async post_id => {
-    await pool.query(
+export const addCommentCnt = async (post_id, connection) => {
+    await connection.query(
         'UPDATE post SET comment_cnt = comment_cnt + 1 WHERE post_id = ?',
         [post_id],
     );
@@ -39,8 +39,13 @@ export const updateComment = async (comment, comment_id, user_id) => {
     return result.affectedRows > 0;
 };
 
-export const deleteCommentData = async (comment_id, user_id, post_id) => {
-    const [result] = await pool.query(
+export const deleteCommentData = async (
+    comment_id,
+    user_id,
+    post_id,
+    connection,
+) => {
+    const [result] = await connection.query(
         'DELETE FROM comment WHERE comment_id = ? AND user_id = ? AND post_id = ?',
         [comment_id, user_id, post_id],
     );
@@ -48,8 +53,8 @@ export const deleteCommentData = async (comment_id, user_id, post_id) => {
     return result.affectedRows > 0;
 };
 
-export const subCommentCnt = async post_id => {
-    await pool.query(
+export const subCommentCnt = async (post_id, connection) => {
+    await connection.query(
         'UPDATE post SET comment_cnt = comment_cnt - 1 WHERE post_id = ?',
         [post_id],
     );

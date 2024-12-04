@@ -5,7 +5,7 @@ import {
     getUserInfo,
     updateRePW,
     updateUserInfo,
-} from '../model/userModel.js';
+} from '../models/userModel.js';
 
 export async function getUser(req, res) {
     if (!req.session.userId) {

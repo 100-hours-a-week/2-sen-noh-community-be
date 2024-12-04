@@ -1,10 +1,9 @@
-import { hash } from 'bcrypt';
 import {
     checkDupEmail,
     checkDupNickname,
-    createUser,
     loginUser,
-} from '../model/authModel.js';
+} from '../models/authModel.js';
+import { signUpTransaction } from '../services/authService.js';
 
 export async function login(req, res) {
     const { email, password } = req.body;
@@ -82,21 +81,9 @@ export async function signIn(req, res) {
             });
         }
 
-        if (await checkDupEmail(email)) {
-            return res
-                .status(400)
-                .json({ message: '중복되는 이메일 입니다. ' });
-        }
-
-        if (await checkDupNickname(nickname)) {
-            return res.status(400).json({ message: '중복되는 닉네임입니다.' });
-        }
-
-        const hashedPW = await hash(password, 10);
-
-        const newUserId = await createUser({
+        const newUserId = await signUpTransaction({
             email,
-            password: hashedPW,
+            password,
             nickname,
             profile_image,
         });
@@ -104,8 +91,9 @@ export async function signIn(req, res) {
         return res
             .status(201)
             .json({ message: '회원가입 완료', user_id: newUserId });
-    } catch (error) {
-        return res.status(400).json({ message: error.message });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
     }
 }
 
