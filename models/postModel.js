@@ -82,8 +82,8 @@ export const updatePost = async (updateData, user_id, post_id) => {
     return result.affectedRows;
 };
 
-export const insertHeart = async (post_id, user_id) => {
-    const [result] = await pool.query(
+export const insertHeart = async (post_id, user_id, connection) => {
+    const [result] = await connection.query(
         'INSERT INTO heart (post_id, user_id) VALUES (?, ?)',
         [post_id, user_id],
     );
@@ -91,15 +91,15 @@ export const insertHeart = async (post_id, user_id) => {
     return result.affectedRows > 0;
 };
 
-export const addLikeCnt = async post_id => {
-    await pool.query(
+export const addLikeCnt = async (post_id, connection) => {
+    await connection.query(
         'UPDATE post SET heart_cnt = heart_cnt + 1 WHERE post_id = ?',
         [post_id],
     );
 };
 
-export const deleteHeart = async (post_id, user_id) => {
-    const [result] = await pool.query(
+export const deleteHeart = async (post_id, user_id, connection) => {
+    const [result] = await connection.query(
         'DELETE FROM heart WHERE post_id = ? AND user_id = ?',
         [post_id, user_id],
     );
@@ -107,8 +107,8 @@ export const deleteHeart = async (post_id, user_id) => {
     return result.affectedRows > 0;
 };
 
-export const subLikeCnt = async post_id => {
-    await pool.query(
+export const subLikeCnt = async (post_id, connection) => {
+    await connection.query(
         'UPDATE post SET heart_cnt = heart_cnt - 1 WHERE post_id = ?',
         [post_id],
     );

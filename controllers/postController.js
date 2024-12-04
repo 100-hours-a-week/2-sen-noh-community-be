@@ -1,17 +1,17 @@
 import {
-    addLikeCnt,
     addVisitCnt,
     countPosts,
-    deleteHeart,
     deletePostData,
     findLikePost,
-    insertHeart,
     insertPost,
     selectAllPost,
     selectPost,
-    subLikeCnt,
     updatePost,
 } from '../models/postModel.js';
+import {
+    deleteHeartTransaction,
+    insertHeartTransaction,
+} from '../services/postService.js';
 
 export async function getPost(req, res) {
     const page = parseInt(req.query.page, 10) || 1;
@@ -184,17 +184,11 @@ export async function addLike(req, res) {
     }
 
     try {
-        const isSuccess = await insertHeart(postId, req.session.userId);
+        const result = await insertHeartTransaction(postId, req.session.userId);
 
-        if (!isSuccess) {
-            return res
-                .status(200)
-                .json({ message: '이미 좋아요 눌렀습니다.', success: false });
-        }
-
-        await addLikeCnt(postId);
-
-        return res.status(201).json({ message: '좋아요', success: true });
+        return res
+            .status(200)
+            .json({ message: result.message, success: result.success });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
@@ -213,17 +207,10 @@ export async function deleteLike(req, res) {
     }
 
     try {
-        const isSuccess = await deleteHeart(postId, req.session.userId);
-
-        if (!isSuccess) {
-            return res
-                .status(200)
-                .json({ message: '이미 좋아요 눌렀습니다.', success: false });
-        }
-
-        await subLikeCnt(postId);
-
-        return res.status(201).json({ message: '좋아요', success: true });
+        const result = await deleteHeartTransaction(postId, req.session.userId);
+        return res
+            .status(200)
+            .json({ message: result.message, success: result.success });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
