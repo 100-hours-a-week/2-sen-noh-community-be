@@ -21,14 +21,16 @@ export const countPosts = async () => {
     return rows[0].totalCount;
 };
 
-export const selectPost = async post_id => {
+export const selectPost = async (post_id, user_id) => {
     const [rows] = await pool.query(
         `SELECT post.post_id, post.user_id, post.title, post.content, post.post_image, post.heart_cnt, post.comment_cnt, post.visit_cnt, post.date, 
-                user.nickname, user.profile_image
+                user.nickname, user.profile_image,
+                CASE WHEN post.user_id = ? THEN true ELSE false
+                END AS is_user
          FROM post
          JOIN user ON post.user_id = user.user_id
          WHERE post.post_id = ?`,
-        [post_id],
+        [user_id, post_id],
     );
     return rows[0];
 };

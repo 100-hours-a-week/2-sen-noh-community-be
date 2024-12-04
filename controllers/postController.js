@@ -61,7 +61,7 @@ export async function getDetailPost(req, res) {
     }
 
     try {
-        const post = await selectPost(postId);
+        const post = await selectPost(postId, req.session.userId);
 
         if (!post) {
             return res.status(404).json({ message: '게시글 없음' });
