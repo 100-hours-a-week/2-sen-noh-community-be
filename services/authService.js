@@ -18,13 +18,11 @@ export const signUpTransaction = async ({
         await connection.beginTransaction();
 
         if (await checkDupEmail(email, connection)) {
-            return res
-                .status(400)
-                .json({ message: '중복되는 이메일 입니다. ' });
+            throw new Error('중복되는 이메일 입니다.');
         }
 
         if (await checkDupNickname(nickname, connection)) {
-            return res.status(400).json({ message: '중복되는 닉네임입니다.' });
+            throw new Error('중복되는 닉네임 입니다.');
         }
 
         const hashedPW = await hash(password, 10);
@@ -40,10 +38,10 @@ export const signUpTransaction = async ({
         );
 
         await connection.commit();
-        return newUserId;
+        return { success: true, newUserId };
     } catch (error) {
         await connection.rollback();
-        throw error;
+        return { success: false, message: error.message };
     } finally {
         connection.release();
     }

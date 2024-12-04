@@ -11,13 +11,14 @@ export const insertHeartTransaction = async (post_id, user_id) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
-        const isSuccess = await insertHeart(post_id, user_id, connection);
 
+        const isSuccess = await insertHeart(post_id, user_id, connection);
         if (!isSuccess) {
             throw new Error();
         }
 
         await addLikeCnt(post_id, connection);
+
         await connection.commit();
         return { success: true, message: '좋아요' };
     } catch (error) {
@@ -32,13 +33,14 @@ export const deleteHeartTransaction = async (post_id, user_id) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
-        const isSuccess = await deleteHeart(post_id, user_id, connection);
 
+        const isSuccess = await deleteHeart(post_id, user_id, connection);
         if (!isSuccess) {
             throw new Error();
         }
 
         await subLikeCnt(post_id, connection);
+
         await connection.commit();
         return { success: true, message: '좋아요 취소' };
     } catch (error) {

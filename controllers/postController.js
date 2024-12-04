@@ -27,14 +27,14 @@ export async function getPost(req, res) {
         const totalItems = await countPosts();
 
         if (startIndex >= totalItems) {
-            return res
-                .status(400)
-                .json({ message: '유효하지 않은 페이지 번호입니다.' });
+            return res.status(400).json({
+                message: '유효하지 않은 페이지 번호입니다.',
+            });
         }
 
         const pagedPosts = await selectAllPost(size, startIndex);
 
-        res.status(200).json({
+        return res.status(200).json({
             message: '게시글 목록',
             data: pagedPosts,
             meta: {
@@ -95,7 +95,7 @@ export async function addPost(req, res) {
             user_id: req.session.userId,
         });
 
-        res.status(201).json({
+        return res.status(201).json({
             message: '새 게시글 추가 완',
             postId: postId,
         });
@@ -128,9 +128,7 @@ export async function editPost(req, res) {
                 message: '사용자가 수정 할 수 있는 게시글이 없습니다.',
             });
 
-        return res.status(200).json({
-            message: '게시글 수정 완료',
-        });
+        return res.status(200).json({ message: '게시글 수정 완료' });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
@@ -143,11 +141,13 @@ export async function deletePost(req, res) {
 
     try {
         const delPost = await deletePostData(postId, req.session.userId);
+
         if (!delPost) {
             return res
                 .status(404)
                 .json({ message: '찾을 수 없는 사용자가 쓴 게시글' });
         }
+
         return res.status(200).json({
             message: '게시글 삭제 완료',
         });
@@ -167,9 +167,10 @@ export async function addLike(req, res) {
     try {
         const result = await insertHeartTransaction(postId, req.session.userId);
 
-        return res
-            .status(200)
-            .json({ message: result.message, success: result.success });
+        return res.status(200).json({
+            message: result.message,
+            success: result.success,
+        });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
@@ -185,9 +186,11 @@ export async function deleteLike(req, res) {
 
     try {
         const result = await deleteHeartTransaction(postId, req.session.userId);
-        return res
-            .status(200)
-            .json({ message: result.message, success: result.success });
+
+        return res.status(200).json({
+            message: result.message,
+            success: result.success,
+        });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });

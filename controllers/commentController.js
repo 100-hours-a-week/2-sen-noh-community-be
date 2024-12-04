@@ -14,7 +14,7 @@ export async function getComment(req, res) {
     try {
         const comments = await selectComment(postId, req.session.userId);
 
-        res.status(200).json({
+        return res.status(200).json({
             message: '댓글 조회',
             data: comments,
         });
@@ -39,9 +39,7 @@ export async function addComment(req, res) {
             comment,
         });
 
-        res.status(201).json({
-            message: '새 댓글 추가 완',
-        });
+        return res.status(201).json({ message: '새 댓글 추가 완' });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
@@ -62,12 +60,14 @@ export async function editComment(req, res) {
             commentId,
             req.session.userId,
         );
+
         if (!editCmt) {
-            return res
-                .status(404)
-                .json({ message: '사용자가 쓴 댓글을 찾을 수 없음' });
+            return res.status(404).json({
+                message: '사용자가 쓴 댓글을 찾을 수 없음',
+            });
         }
-        res.status(200).json({ message: '댓글 수정 완' });
+
+        return res.status(200).json({ message: '댓글 수정 완' });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
@@ -83,13 +83,17 @@ export async function deleteComment(req, res) {
     }
 
     try {
-        await deleteCmtTransaction({
+        const result = await deleteCmtTransaction({
             comment_id: commentId,
             user_id: req.session.userId,
             post_id: postId,
         });
 
-        res.status(200).json({ message: '댓글 삭제 완' });
+        if (!result.success) {
+            return res.status(404).json({ message: result.message });
+        }
+
+        return res.status(200).json({ message: '댓글 삭제 완' });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });

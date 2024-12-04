@@ -11,13 +11,14 @@ export async function login(req, res) {
     if (!email || !password) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
+
     try {
         const user = await loginUser({ email, password });
 
         if (!user) {
-            return res
-                .status(400)
-                .json({ message: '아이디와 패스워드가 일치하지 않습니다.' });
+            return res.status(400).json({
+                message: '아이디와 패스워드가 일치하지 않습니다.',
+            });
         }
 
         req.session.userId = user.user_id;
@@ -63,9 +64,9 @@ export async function signIn(req, res) {
 
     try {
         if (!validateEmail(email)) {
-            return res
-                .status(400)
-                .json({ message: '유효하지 않은 이메일 형식입니다.' });
+            return res.status(400).json({
+                message: '유효하지 않은 이메일 형식입니다.',
+            });
         }
 
         if (!validatePassword(password)) {
@@ -81,16 +82,21 @@ export async function signIn(req, res) {
             });
         }
 
-        const newUserId = await signUpTransaction({
+        const result = await signUpTransaction({
             email,
             password,
             nickname,
             profile_image,
         });
 
-        return res
-            .status(201)
-            .json({ message: '회원가입 완료', user_id: newUserId });
+        if (!result.success) {
+            return res.status(400).json({ message: result.message });
+        }
+
+        return res.status(201).json({
+            message: '회원가입 완료',
+            user_id: result.newUserId,
+        });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
@@ -103,12 +109,14 @@ export async function checkEmail(req, res) {
     if (!email) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
+
     try {
         const is_existed = await checkDupEmail(email);
 
-        return res
-            .status(200)
-            .json({ message: '중복 여부', data: { is_existed } });
+        return res.status(200).json({
+            message: '중복 여부',
+            data: { is_existed },
+        });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });
@@ -125,9 +133,10 @@ export async function checkNickname(req, res) {
     try {
         const is_existed = await checkDupNickname(nickname);
 
-        return res
-            .status(200)
-            .json({ message: '중복 여부', data: { is_existed } });
+        return res.status(200).json({
+            message: '중복 여부',
+            data: { is_existed },
+        });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });

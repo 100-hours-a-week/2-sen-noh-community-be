@@ -39,16 +39,15 @@ export const deleteCmtTransaction = async ({
         );
 
         if (!deleteCmt) {
-            return res
-                .status(404)
-                .json({ message: '사용자가 쓴 댓글을 찾을 수 없음' });
+            throw new Error('사용자가 쓴 댓글을 찾을 수 없음');
         }
 
         await subCommentCnt(post_id, connection);
         await connection.commit();
+        return { success: true };
     } catch (error) {
         await connection.rollback();
-        throw error;
+        return { success: false, message: error.message };
     } finally {
         connection.release();
     }

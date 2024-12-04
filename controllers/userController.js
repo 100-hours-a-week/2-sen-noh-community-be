@@ -12,9 +12,9 @@ export async function getUser(req, res) {
         const user = await getUserInfo(req.session.userId);
 
         if (!user) {
-            return res
-                .status(404)
-                .json({ message: '찾을 수 없는 유저입니다.' });
+            return res.status(404).json({
+                message: '찾을 수 없는 유저입니다.',
+            });
         }
 
         return res.status(200).json({
@@ -35,9 +35,9 @@ export async function deleteUser(req, res) {
         const users = await deleteUserAll(req.session.userId);
 
         if (!users) {
-            return res
-                .status(404)
-                .json({ message: '찾을 수 없는 유저입니다.' });
+            return res.status(404).json({
+                message: '찾을 수 없는 유저입니다.',
+            });
         }
 
         return res.status(200).json({ message: '회원탈퇴 완료' });
@@ -86,9 +86,11 @@ export async function updatePW(req, res) {
             password: await hash(password, 10),
             user_id: req.session.userId,
         });
+
         if (!result) {
             return res.status(404).json({ message: '찾을 수 없는 유저' });
         }
+
         return res.status(200).json({ message: '비밀번호 수정' });
     } catch (err) {
         console.error(err);
