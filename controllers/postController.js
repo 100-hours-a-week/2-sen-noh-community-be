@@ -52,10 +52,6 @@ export async function getPost(req, res) {
 export async function getDetailPost(req, res) {
     const { postId } = req.params;
 
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
-
     if (!postId) {
         return res.status(400).json({ message: '필수안보냄' });
     }
@@ -87,10 +83,6 @@ export async function addPost(req, res) {
         ? `http://localhost:3000/${req.file.path}`
         : null;
 
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
-
     if (!title || !content) {
         return res.status(400).json({ message: '필수안보냄' });
     }
@@ -119,10 +111,6 @@ export async function editPost(req, res) {
     const post_image = req.file
         ? `http://localhost:3000/${req.file.path}`
         : null;
-
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
 
     if (!title && !content && !post_image) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });
@@ -153,9 +141,6 @@ export async function editPost(req, res) {
 export async function deletePost(req, res) {
     const { postId } = req.params;
 
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
     try {
         const delPost = await deletePostData(postId, req.session.userId);
         if (!delPost) {
@@ -175,10 +160,6 @@ export async function deletePost(req, res) {
 export async function addLike(req, res) {
     const { postId } = req.params;
 
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
-
     if (!postId) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });
     }
@@ -197,10 +178,6 @@ export async function addLike(req, res) {
 
 export async function deleteLike(req, res) {
     const { postId } = req.params;
-
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '필수 요소 안줌' });
-    }
 
     if (!postId) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });

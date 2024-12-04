@@ -9,9 +9,11 @@ import {
     deleteLike,
 } from '../controllers/postController.js';
 import { upload } from '../middlewares/upload.js';
+import { checkSession } from '../middlewares/session.js';
 
 const router = Router();
 
+router.use(checkSession);
 router.get('/', getPost);
 router.get('/:postId', getDetailPost);
 router.post('/', upload.single('post_image'), addPost);

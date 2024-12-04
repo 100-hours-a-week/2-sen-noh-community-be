@@ -7,10 +7,6 @@ import {
 export async function getComment(req, res) {
     const { postId } = req;
 
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
-
     if (!postId) {
         return res.status(400).json({ message: '필수 요소 안줌' });
     }
@@ -31,10 +27,6 @@ export async function getComment(req, res) {
 export async function addComment(req, res) {
     const { postId } = req;
     const { comment } = req.body;
-
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
 
     if (!comment) {
         return res.status(400).json({ message: '필수 요소 안줌' });
@@ -59,10 +51,6 @@ export async function addComment(req, res) {
 export async function editComment(req, res) {
     const { commentId } = req.params;
     const { comment } = req.body;
-
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
 
     if (!comment) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
@@ -89,10 +77,6 @@ export async function editComment(req, res) {
 export async function deleteComment(req, res) {
     const { commentId } = req.params;
     const { postId } = req;
-
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
 
     if (!commentId) {
         return res.status(400).json({ message: '필수 요소 안보냄' });

@@ -8,9 +8,6 @@ import {
 } from '../models/userModel.js';
 
 export async function getUser(req, res) {
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
     try {
         const user = await getUserInfo(req.session.userId);
 
@@ -34,10 +31,6 @@ export async function getUser(req, res) {
 }
 
 export async function deleteUser(req, res) {
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
-
     try {
         const users = await deleteUserAll(req.session.userId);
 
@@ -59,10 +52,6 @@ export async function updateUser(req, res) {
     const profile_image = req.file
         ? `http://localhost:3000/${req.file.path}`
         : null;
-
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
 
     if (!nickname && !profile_image) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });
@@ -87,10 +76,6 @@ export async function updateUser(req, res) {
 
 export async function updatePW(req, res) {
     const { password } = req.body;
-
-    if (!req.session.userId) {
-        return res.status(401).json({ message: '세션 만료' });
-    }
 
     if (!password) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
