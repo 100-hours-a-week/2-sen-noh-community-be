@@ -1,7 +1,10 @@
 import session from 'express-session';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const sessionMiddleware = session({
-    secret: 'yourSecretKey',
+    secret: process.env.SESSION_SECRET,
     saveUninitialized: true,
     resave: false,
     cookie: {
