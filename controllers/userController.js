@@ -1,11 +1,11 @@
 import { hash } from 'bcrypt';
 
 import {
-    deleteUserAll,
     getUserInfo,
     updateRePW,
     updateUserInfo,
 } from '../models/userModel.js';
+import { deleteUserTransaction } from '../services/userService.js';
 
 export async function getUser(req, res) {
     try {
@@ -32,15 +32,15 @@ export async function getUser(req, res) {
 
 export async function deleteUser(req, res) {
     try {
-        const users = await deleteUserAll(req.session.userId);
+        const result = await deleteUserTransaction(req.session.userId);
 
-        if (!users) {
+        if (!result.success) {
             return res.status(404).json({
-                message: '찾을 수 없는 유저입니다.',
+                message: result.message,
             });
         }
 
-        return res.status(200).json({ message: '회원탈퇴 완료' });
+        return res.status(200).json({ message: result.message });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류 발생' });

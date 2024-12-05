@@ -38,9 +38,20 @@ export const updateRePW = async ({ password, user_id }) => {
     return result.affectedRows > 0;
 };
 
-export const deleteUserAll = async user_id => {
-    const [result] = await pool.query('DELETE FROM user WHERE user_id = ?', [
-        user_id,
-    ]);
+export const deleteUserAll = async (user_id, connection) => {
+    const [result] = await connection.query(
+        'DELETE FROM user WHERE user_id = ?',
+        [user_id],
+    );
+    // 댓글 수 업데이트// 시이바
     return result.affectedRows > 0;
+};
+
+export const deleteUserCmtCnt = async (user_id, connection) => {
+    const [rows] = await connection.query(
+        'SELECT c.post_id, COUNT(c.comment_id) AS comment_cnt FROM comment c WHERE c.user_id = ? GROUP BY c.post_id ',
+        [user_id],
+    );
+
+    return rows;
 };

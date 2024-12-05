@@ -53,9 +53,9 @@ export const deleteCommentData = async (
     return result.affectedRows > 0;
 };
 
-export const subCommentCnt = async (post_id, connection) => {
+export const subCommentCnt = async (post_id, count = 1, connection) => {
     await connection.query(
-        'UPDATE post SET comment_cnt = comment_cnt - 1 WHERE post_id = ?',
-        [post_id],
+        'UPDATE post SET comment_cnt = comment_cnt - ? WHERE post_id = ?',
+        [count, post_id],
     );
 };
