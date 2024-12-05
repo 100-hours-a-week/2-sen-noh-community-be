@@ -83,40 +83,14 @@ http://localhost:3002/로 접속
 
 ## 🛠️ Tech Stacks
 
-<div align="">
-<table>
-    <tr>
-    <td style="width : 500px">
-      <h3>💻 Frontend</h3>
-      <ul>
-        <li>
-          <img src="https://img.shields.io/badge/-JavaScript-F7DF1E?logo=javascript&logoColor=black&style=flat-square" alt="JavaScript">
-        </li>
-        <li>
-          <img src="https://img.shields.io/badge/-HTML-E34F26?logo=html5&logoColor=white&style=flat-square" alt="HTML">
-        </li>
-        <li>
-          <img src="https://img.shields.io/badge/-CSS-1572B6?logo=css3&logoColor=white&style=flat-square" alt="CSS">
-        </li>
-      </ul>
-    </td>
-    <td style="width:50%">
-      <h3>🗃️ Backend</h3>
-      <ul>
-        <li>
-          <img src="https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white&style=flat-square" alt="Node.js">
-        </li>
-        <li>
-          <img src="https://img.shields.io/badge/-Express.js-000000?logo=express&logoColor=white&style=flat-square" alt="Express.js">
-        </li>
-        <li>
-          <img src="https://img.shields.io/badge/-MySQL-4479A1?logo=mysql&logoColor=white&style=flat-square" alt="MySQL">
-        </li>
-      </ul>
-    </td>
-  </tr>
-</table>
-</div>
+ ![JavaScript](https://img.shields.io/badge/-JavaScript-F7DF1E?logo=javascript&logoColor=black&style=flat-square)
+  ![HTML](https://img.shields.io/badge/-HTML-E34F26?logo=html5&logoColor=white&style=flat-square) 
+  ![CSS](https://img.shields.io/badge/-CSS-1572B6?logo=css3&logoColor=white&style=flat-square)   
+ ![Node.js](https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white&style=flat-square)
+  ![Express.js](https://img.shields.io/badge/-Express.js-000000?logo=express&logoColor=white&style=flat-square) 
+  ![MySQL](https://img.shields.io/badge/-MySQL-4479A1?logo=mysql&logoColor=white&style=flat-square) 
+
+
 
 <br>
 
