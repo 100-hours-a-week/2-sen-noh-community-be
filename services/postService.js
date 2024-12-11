@@ -5,7 +5,7 @@ import {
     subLikeCnt,
 } from '../models/postModel.js';
 
-import pool from '../db.js';
+import pool from '../config/db.js';
 
 export const insertHeartTransaction = async (post_id, user_id) => {
     const connection = await pool.getConnection();

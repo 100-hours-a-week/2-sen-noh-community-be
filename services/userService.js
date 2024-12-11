@@ -1,6 +1,6 @@
 import { subCommentCnt } from '../models/commentModel.js';
 import { deleteUserAll, deleteUserCmtCnt } from '../models/userModel.js';
-import pool from '../db.js';
+import pool from '../config/db.js';
 
 export const deleteUserTransaction = async user_id => {
     const connection = await pool.getConnection();

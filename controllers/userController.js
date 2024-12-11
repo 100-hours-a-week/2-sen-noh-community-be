@@ -6,6 +6,7 @@ import {
     updateUserInfo,
 } from '../models/userModel.js';
 import { deleteUserTransaction } from '../services/userService.js';
+import { SERVER_URL } from '../config/config.js';
 
 export async function getUser(req, res) {
     try {
@@ -49,9 +50,7 @@ export async function deleteUser(req, res) {
 
 export async function updateUser(req, res) {
     const { nickname } = req.body;
-    const profile_image = req.file
-        ? `http://localhost:3000/${req.file.path}`
-        : null;
+    const profile_image = req.file ? `${SERVER_URL}/${req.file.path}` : null;
 
     if (!nickname && !profile_image) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });

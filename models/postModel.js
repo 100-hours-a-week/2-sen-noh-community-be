@@ -1,4 +1,4 @@
-import pool from '../db.js';
+import pool from '../config/db.js';
 
 export const selectAllPost = async (limit = 10, offset) => {
     const [rows] = await pool.query(
