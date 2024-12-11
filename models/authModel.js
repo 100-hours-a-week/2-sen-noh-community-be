@@ -1,5 +1,5 @@
 import { compare } from 'bcrypt';
-import pool from '../db.js';
+import pool from '../config/db.js';
 
 export const loginUser = async ({ email, password }) => {
     const [rows] = await pool.query('SELECT * FROM user WHERE email = ?', [

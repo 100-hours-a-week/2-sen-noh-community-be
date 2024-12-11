@@ -4,7 +4,7 @@ import {
     insertComment,
     subCommentCnt,
 } from '../models/commentModel.js';
-import pool from '../db.js';
+import pool from '../config/db.js';
 
 export const insertCmtTransaction = async ({ post_id, user_id, comment }) => {
     const connection = await pool.getConnection();

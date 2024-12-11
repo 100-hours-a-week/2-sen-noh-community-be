@@ -5,6 +5,7 @@ import userRoutes from './routes/userRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import middlewareRoutes from './routes/middlewareRoutes.js';
+import { SERVER_URL } from './config/config.js';
 
 const app = express();
 
@@ -26,5 +27,5 @@ app.use('/posts/:postId/comments', commentRoutes);
 app.use('/uploads', express.static('uploads'));
 
 app.listen(port, () => {
-    console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);
+    console.log(`서버가 ${SERVER_URL}에서 실행 중입니다.`);
 });

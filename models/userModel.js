@@ -1,4 +1,4 @@
-import pool from '../db.js';
+import pool from '../config/db.js';
 
 export const getUserInfo = async user_id => {
     const [rows] = await pool.query('SELECT * FROM user WHERE user_id = ?', [
