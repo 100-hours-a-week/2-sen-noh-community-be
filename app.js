@@ -14,17 +14,17 @@ app.use(express.json());
 
 app.use(middlewareRoutes);
 
-app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
-app.use('/posts', postRoutes);
-app.use('/posts/:postId/comments', (req, res, next) => {
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/posts/:postId/comments', (req, res, next) => {
     const { postId } = req.params;
     req.postId = postId;
     next();
 });
-app.use('/posts/:postId/comments', commentRoutes);
+app.use('/api/posts/:postId/comments', commentRoutes);
 
-app.use('/uploads', express.static('uploads'));
+app.use('/api/uploads', express.static('uploads'));
 
 app.listen(port, () => {
     console.log(`서버가 ${SERVER_URL}에서 실행 중입니다.`);
