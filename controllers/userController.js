@@ -50,7 +50,7 @@ export async function deleteUser(req, res) {
 
 export async function updateUser(req, res) {
     const { nickname } = req.body;
-    const profile_image = req.file ? `${SERVER_URL}/${req.file.path}` : null;
+    const profile_image = req.file ? `${req.file.path}` : null;
 
     if (!nickname && !profile_image) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });

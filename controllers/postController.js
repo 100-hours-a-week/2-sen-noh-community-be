@@ -80,7 +80,7 @@ export async function getDetailPost(req, res) {
 
 export async function addPost(req, res) {
     const { title, content } = req.body;
-    const post_image = req.file ? `${SERVER_URL}/${req.file.path}` : null;
+    const post_image = req.file ? `${req.file.path}` : null;
 
     if (!title || !content) {
         return res.status(400).json({ message: '필수안보냄' });
@@ -107,7 +107,7 @@ export async function addPost(req, res) {
 export async function editPost(req, res) {
     const { postId } = req.params;
     const { title, content } = req.body;
-    const post_image = req.file ? `${SERVER_URL}/${req.file.path}` : null;
+    const post_image = req.file ? `${req.file.path}` : null;
 
     if (!title && !content && !post_image) {
         return res.status(400).json({ message: '아무 요소도 보내지 않음' });
