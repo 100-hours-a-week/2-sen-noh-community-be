@@ -1,4 +1,3 @@
-import { SERVER_URL } from '../config/config.js';
 import {
     checkDupEmail,
     checkDupNickname,
