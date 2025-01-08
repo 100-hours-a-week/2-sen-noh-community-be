@@ -6,7 +6,6 @@ import {
     updateUserInfo,
 } from '../models/userModel.js';
 import { deleteUserTransaction } from '../services/userService.js';
-import { SERVER_URL } from '../config/config.js';
 
 export async function getUser(req, res) {
     try {
