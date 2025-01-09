@@ -54,7 +54,7 @@ const validateNickname = nickname => {
 
 export async function signIn(req, res) {
     const { email, password, nickname } = req.body;
-    const profile_image = req.file ? `${req.file.path}` : null;
+    const profile_image = req.file ? `${req.file.key}` : null;
 
     if (!email || !password || !nickname) {
         return res.status(400).json({ message: '필수 요소 안보냄' });
