@@ -5,6 +5,7 @@ import {
     findLikePost,
     insertPost,
     selectAllPost,
+    selectEditPost,
     selectPost,
     updatePost,
 } from '../models/postModel.js';
@@ -70,6 +71,31 @@ export async function getDetailPost(req, res) {
         return res.status(200).json({
             message: '게시글 목록',
             data: { ...post, is_liked },
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류 발생' });
+    }
+}
+
+// 본인 작성자인지 확인이 필요할까?
+export async function getEditPost(req, res) {
+    const { postId } = req.params;
+
+    if (!postId) {
+        return res.status(400).json({ message: '필수안보냄' });
+    }
+
+    try {
+        const post = await selectEditPost(postId);
+
+        if (!post) {
+            return res.status(404).json({ message: '게시글 없음' });
+        }
+
+        return res.status(200).json({
+            message: '게시글 목록',
+            data: { ...post },
         });
     } catch (err) {
         console.error(err);

@@ -35,6 +35,16 @@ export const selectPost = async (post_id, user_id) => {
     return rows[0];
 };
 
+export const selectEditPost = async post_id => {
+    const [rows] = await pool.query(
+        `SELECT post.title, post.content, post.post_image
+         FROM post
+         WHERE post.post_id = ?`,
+        [post_id],
+    );
+    return rows[0];
+};
+
 export const findLikePost = async (post_id, user_id) => {
     const [rows] = await pool.query(
         'SELECT * FROM heart WHERE post_id = ? AND user_id = ?',
