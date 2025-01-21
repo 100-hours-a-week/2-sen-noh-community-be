@@ -1,10 +1,10 @@
+import bcrypt from 'bcryptjs';
 import pool from '../config/db.js';
 import {
     checkDupEmail,
     checkDupNickname,
     createUser,
 } from '../models/authModel.js';
-import { hash } from 'bcrypt';
 
 export const signUpTransaction = async ({
     email,
@@ -25,7 +25,7 @@ export const signUpTransaction = async ({
             throw new Error('중복되는 닉네임 입니다.');
         }
 
-        const hashedPW = await hash(password, 10);
+        const hashedPW = await bcrypt.hash(password, 10);
 
         const newUserId = await createUser(
             {

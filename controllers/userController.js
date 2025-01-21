@@ -1,5 +1,4 @@
-import { hash } from 'bcrypt';
-
+import bcrypt from 'bcryptjs';
 import {
     getUserInfo,
     updateRePW,
@@ -81,7 +80,7 @@ export async function updatePW(req, res) {
 
     try {
         const result = await updateRePW({
-            password: await hash(password, 10),
+            password: await bcrypt.hash(password, 10),
             user_id: req.session.userId,
         });
 
