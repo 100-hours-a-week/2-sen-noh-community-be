@@ -8,7 +8,12 @@ export const getUserInfo = async user_id => {
     return rows[0];
 };
 
-export const updateUserInfo = async ({ nickname, profile_image, user_id }) => {
+export const updateUserInfo = async ({
+    nickname,
+    profile_image,
+    originProfile,
+    user_id,
+}) => {
     const updates = [];
     const values = [];
 
@@ -17,7 +22,7 @@ export const updateUserInfo = async ({ nickname, profile_image, user_id }) => {
         values.push(nickname);
     }
 
-    if (profile_image) {
+    if (profile_image || originProfile) {
         updates.push('profile_image = ?');
         values.push(profile_image);
     }

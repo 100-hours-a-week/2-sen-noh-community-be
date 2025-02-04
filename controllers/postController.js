@@ -1,3 +1,4 @@
+import session from 'express-session';
 import {
     addVisitCnt,
     countPosts,
@@ -66,7 +67,18 @@ export async function getDetailPost(req, res) {
 
         const is_liked = await findLikePost(postId, req.session.userId);
 
-        await addVisitCnt(postId);
+        if (!req.session.viewedPosts) {
+            req.session.viewedPosts = [];
+        }
+
+        if (!req.session.viewedPosts.includes(postId)) {
+            try {
+                await addVisitCnt(postId);
+                req.session.viewedPosts.push(postId);
+            } catch (err) {
+                console.error(`조회수 증가 실패: ${err.message}`);
+            }
+        }
 
         return res.status(200).json({
             message: '게시글 목록',

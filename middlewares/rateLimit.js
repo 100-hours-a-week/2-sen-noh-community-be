@@ -9,6 +9,6 @@ export const generalLimiter = rateLimit({
 
 export const getLimiter = rateLimit({
     windowMs: 5 * 60 * 1000,
-    max: 100,
+    max: 200,
     message: '이 ip로부터 너무 많은 요청이 왔다, 5분 뒤 다시 요청해주새요',
 });
