@@ -32,8 +32,8 @@ export const addCommentCnt = async (post_id, connection) => {
 
 export const updateComment = async (comment, comment_id, user_id) => {
     const [result] = await pool.query(
-        'UPDATE comment SET comment = ?, date = ? WHERE comment_id = ? AND user_id = ?',
-        [comment, new Date(), comment_id, user_id],
+        'UPDATE comment SET comment = ? WHERE comment_id = ? AND user_id = ?',
+        [comment, comment_id, user_id],
     );
 
     return result.affectedRows > 0;
