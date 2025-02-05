@@ -18,6 +18,7 @@ import {
 export async function getPost(req, res) {
     const page = parseInt(req.query.page, 10) || 1;
     const size = parseInt(req.query.size, 10) || 10;
+    const category = parseInt(req.query.category, 10);
 
     if (!page || !size) {
         return res.status(400).json({ message: '필수안보냄' });
@@ -34,7 +35,7 @@ export async function getPost(req, res) {
             });
         }
 
-        const pagedPosts = await selectAllPost(size, startIndex);
+        const pagedPosts = await selectAllPost(category, size, startIndex);
 
         return res.status(200).json({
             message: '게시글 목록',
