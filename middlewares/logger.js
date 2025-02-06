@@ -24,3 +24,16 @@ export const loggerMiddleware = morgan(
     ':remote-addr - :remote-user [:date[Asia/Seoul]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
     { stream: accessLogStream },
 );
+
+const errorLogStream = createStream('error.log', {
+    interval: '1d',
+    path: logDirectory,
+});
+
+export const errorLoggerMiddleware = morgan(
+    ':remote-addr - :remote-user [:date[Asia/Seoul]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+    {
+        stream: errorLogStream,
+        skip: (req, res) => res.statusCode < 400,
+    },
+);
