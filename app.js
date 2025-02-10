@@ -6,10 +6,21 @@ import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import middlewareRoutes from './routes/middlewareRoutes.js';
 import { SERVER_URL } from './config/config.js';
+import client from 'prom-client';
 
 const app = express();
-
 const port = 3000;
+
+// Prometheus 메트릭 수집 설정
+const { collectDefaultMetrics, register } = client;
+collectDefaultMetrics({ timeout: 5000 });
+
+// /metrics 엔드포인트 추가
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+});
+
 app.use(express.json());
 
 app.use(middlewareRoutes);
