@@ -18,10 +18,10 @@ router.use(corsMiddleware);
 router.use(sessionMiddleware);
 router.use(loggerMiddleware);
 router.use(errorLoggerMiddleware);
-router.use(generalLimiter);
+// router.use(generalLimiter);
 
-router.get('*', getLimiter, (req, res, next) => {
-    next();
-});
+// router.get('*', getLimiter, (req, res, next) => {
+//     next();
+// });
 
 export default router;
