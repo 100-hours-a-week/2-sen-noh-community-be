@@ -1,11 +1,22 @@
+import { RedisStore } from 'connect-redis';
 import session from 'express-session';
+import { createClient } from 'redis';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
+const redisClient = createClient();
+
+redisClient.connect().catch(console.error);
+
+const redisStore = new RedisStore({
+    client: redisClient,
+});
+
 export const sessionMiddleware = session({
+    store: redisStore,
     secret: process.env.SESSION_SECRET || 'secret',
-    saveUninitialized: true,
+    saveUninitialized: false,
     resave: false,
     cookie: {
         maxAge: 24 * 60 * 60 * 1000, // 쿠키 유효 시간 (예: 1일)

@@ -101,7 +101,7 @@ export function logout(req, res) {
         if (err) {
             console.error('Session destroy error:', err);
         }
-
+        res.clearCookie('connect.sid');
         res.status(200).send({ message: '로그아웃 성공' });
     });
 }
