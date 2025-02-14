@@ -5,7 +5,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const redisClient = createClient();
+const redisClient = createClient({
+    url: 'redis://redis:6379',
+});
 
 redisClient.connect().catch(console.error);
 
